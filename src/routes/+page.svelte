@@ -1,14 +1,15 @@
-<script>
-
-</script>
-
 <svelte:head>
 	<title>Home</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
+<script>
+	import Platformer from "$lib/components/Platformer.svelte";
+
+</script>
+
 <section>
-	<canvas class="scene"/>
+	<Platformer />
 </section>
 
 <style lang="sass">
@@ -17,11 +18,5 @@
 		flex-direction: column
 		justify-content: center
 		align-items: center
-		flex: 0.6
-
-		.scene 
-			width: 100%
-			height: 100%
-			background-color: #000
 	
 </style>
