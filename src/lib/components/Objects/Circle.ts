@@ -19,16 +19,11 @@ export default class Circle extends GameObject {
 		this.context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
 		this.context.arc(viewCoords.x, viewCoords.y, this.radius, 0, 2 * Math.PI);
 		this.context.fill();
-
-		// this.context.beginPath();
-		// this.context.moveTo(this.x, this.y);
-		// this.context.lineTo(this.x + this.vx, this.y + this.vy);
-		// this.context.stroke();
 	}
 
 	update = (timePassed: number): void => {
 		// Move with set velocity
-		this.vVelocity.y += (G * this.mass) * timePassed;
+		this.vVelocity.y -= (G * this.mass) * timePassed;
 		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
 	}

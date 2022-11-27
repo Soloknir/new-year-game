@@ -29,9 +29,7 @@ export default class GameDriver {
 		this.oldTimeStamp = timeStamp;
 
 		// Loop over all game objects
-		for (let i = 0; i < this.gameObjects.length; i++) {
-			this.gameObjects.forEach(obj => obj.update(this.secondsPassed));
-		}
+		this.gameObjects.forEach(obj => obj.update(this.secondsPassed));
 
 		this.detectEdgeCollisions();
 		this.detectCollisions();
@@ -203,11 +201,11 @@ export default class GameDriver {
 	}
 
 	addCircle = () => {
-		this.gameObjects.push(new Circle(this.context, new Vector2D(150, 100), new Vector2D(50, -20)));
+		this.gameObjects.push(new Circle(this.context, new Vector2D(150, 100), new Vector2D(50, 20)));
 	}
 
 	addRect = () => {
-		this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 100), new Vector2D(-50, -20)));
+		this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 100), new Vector2D(-50, 20)));
 	}
 
 	spawnPlayer = () => {

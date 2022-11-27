@@ -18,7 +18,7 @@ export class Player extends GameObject {
 
 		// Draw a simple square
 		this.context.fillStyle = 'red';
-		this.context.fillRect(viewCoords.x, viewCoords.y, this.width, -this.height);
+		this.context.fillRect(viewCoords.x, viewCoords.y - this.height, this.width, this.height);
 	}
 
 	update = (timePassed: number): void => {
