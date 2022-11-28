@@ -6,7 +6,7 @@ import Rectangle from "./Objects/Rectangle";
 import StaticPlatform from "./Objects/StaticPlatform";
 import { isInstanceOfRectangular, isInstanceOfRound, type GameObjectType, type RectangularType, type RoundType } from "./Objects/Types";
 import { Vector2D } from "./Vector";
-;
+
 
 export default class GameDriver {
 	context: CanvasRenderingContext2D;
@@ -16,7 +16,15 @@ export default class GameDriver {
 	gameObjects: (GameObjectType & IGameObject)[] = [];
 	staticGameObjects: StaticPlatform[] = [];
 	player: Player | null = null;
+
+	column = 0;
+	assets = {
+		characters: {
+			player: <HTMLImageElement | null>(null)
+		}
+	}
 	
+	time = 0;
 	secondsPassed = 0;
 	oldTimeStamp = 0;
 	restitution = 0.1;
@@ -32,11 +40,13 @@ export default class GameDriver {
 			new StaticPlatform(this.context, new Vector2D(500, 200)),
 		];
 
+		this.loadAssets();
 		window.requestAnimationFrame(this.gameLoop);
 	}
 	
 	gameLoop = (timeStamp: number) => {
 		this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
+		this.time += this.secondsPassed;
 		this.oldTimeStamp = timeStamp;
 
 		// Loop over all game objects
@@ -49,6 +59,7 @@ export default class GameDriver {
 		this.context.clearRect(0, 0, this.viewPortWidth, this.viewPortHeight);
 
 		this.drawFps(Math.round(1 / this.secondsPassed));
+		
 
 		// Do the same to draw
 		this.staticGameObjects.forEach(obj => obj.draw(this.viewPortHeight));
@@ -180,12 +191,23 @@ export default class GameDriver {
 		});
 	}
 
+	loadAssets = () => {
+		const img = new Image();
+		img.onload = () => {
+			this.assets.characters.player = img;
+			this.spawnPlayer();
+		};
+		img.src = 'src/lib/components/Sprites/santa.sprite.png';
+	}
+
 	clearWorldState = () => this.gameObjects = [];
 	addCircle = () => this.gameObjects.push(new Circle(this.context, new Vector2D(250, 200), new Vector2D(0, 20)));
 	addRect = () => this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 200), new Vector2D(-50, 20)));
 	
 	spawnPlayer = () => {
-		this.player = new Player(this.context, new Vector2D(250, 250));
-		this.gameObjects.push(this.player);
+		if (this.assets.characters.player) {
+			this.player = new Player(this.context, new Vector2D(250, 250), this.assets.characters.player);
+			this.gameObjects.push(this.player);
+		}
 	}
 }

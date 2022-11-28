@@ -6,12 +6,17 @@ export default class Player implements IGameObject {
 	context: CanvasRenderingContext2D;
 	vCoordinates: Vector2D;
 	vVelocity: Vector2D;
+	sprite: HTMLImageElement;
 	width: number;
 	height: number;
 	friction: number;
 	mass: number;
 	horizontalMoveSpeed: number;
 	jumpImpulse: number;
+
+	time = 0;
+	column = 0;
+	row = 2
 	
 	isColliding = false;
 	isAtFloor = false;
@@ -19,11 +24,11 @@ export default class Player implements IGameObject {
 	isMoveRight = false;
 	isMoveLeft = false;
 
-	constructor(context: CanvasRenderingContext2D, coords: Vector2D, velocity = new Vector2D()) {
-		
+	constructor(context: CanvasRenderingContext2D, coords: Vector2D, sprite: HTMLImageElement, velocity = new Vector2D()) {
 		this.context = context
 		this.vCoordinates = coords
 		this.vVelocity = velocity
+		this.sprite = sprite;
 
 		this.width = 50;
 		this.height = 50;
@@ -37,12 +42,23 @@ export default class Player implements IGameObject {
 	draw = (viewPortHeight: number): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
 
-		// Draw a simple square
-		this.context.fillStyle = 'red';
-		this.context.fillRect(viewCoords.x, viewCoords.y - this.height, this.width, this.height);
+		if (this.isMoveRight) {
+			this.column = Math.round(this.time * 10 % 8);
+			this.row = 11;
+		} else if (this.isMoveLeft) {
+			this.column = Math.round(this.time * 10 % 8);
+			this.row = 9;
+		} else {
+			this.row = 2;
+			this.column = 0;
+		}
+		const frameWidth = 64;
+		const frameHeight = 64;
+		this.context.drawImage(this.sprite, this.column * frameWidth + frameWidth / 4, this.row * frameHeight, frameWidth - frameWidth / 4, frameHeight - 2, viewCoords.x, viewCoords.y - this.height, this.width, this.height);
 	}
 
 	update = (timePassed: number): void => {
+		this.time += timePassed;
 		this.vVelocity.y -= (G * this.mass) * timePassed;
 
 		let horizontalSpeed = this.vVelocity.x;
@@ -57,7 +73,6 @@ export default class Player implements IGameObject {
 			this.isAtFloor = false;
 			this.vVelocity.y = this.jumpImpulse;
 		}
-
 
 		this.vCoordinates.x += horizontalSpeed * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
