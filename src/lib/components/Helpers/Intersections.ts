@@ -1,45 +1,39 @@
 import type Circle from "../Objects/Circle";
 import type Rectangle from "../Objects/Rectangle";
 import type Player from "../Objects/Player";
+import type { Vector2D } from "../Vector";
+import type StaticPlatform from "../Objects/StaticPlatform";
+import type { RoundType } from "../Objects/Types";
 
-const detectRectIntersect = (r1: Rectangle | Player, r2: Rectangle | Player): boolean => {
-	// Check x and y for overlap
-	if (r2.vCoordinates.x > r1.width + r1.vCoordinates.x
+const detectRectIntersect = (r1: Rectangle | Player | StaticPlatform, r2: Rectangle | Player | StaticPlatform): boolean => {
+	return !(r2.vCoordinates.x > r1.width + r1.vCoordinates.x
 		|| r1.vCoordinates.x > r2.width + r2.vCoordinates.x
 		|| r2.vCoordinates.y > r1.height + r1.vCoordinates.y
 		|| r1.vCoordinates.y > r2.height + r2.vCoordinates.y
-	) {
-		return false;
-	}
-
-	return true;
+	);
 }
 
-const detectRectCircleIntersect = (rect: Rectangle | Player, circle: Circle): boolean => {
+const detectRectCircleIntersect = (rect: Rectangle | Player | StaticPlatform, circle: Circle): boolean => {
+	const vTestCoordinates: Vector2D = circle.vCoordinates.getCopy();
 	const { width, height } = rect;
 
-	let testX = circle.vCoordinates.x, testY = circle.vCoordinates.y;
+	vTestCoordinates.x = (circle.vCoordinates.x < rect.vCoordinates.x)
+		? rect.vCoordinates.x // left edge
+		: (circle.vCoordinates.x > rect.vCoordinates.x + width)
+			? rect.vCoordinates.x + width // right edge
+			: vTestCoordinates.x;
 
-	if (circle.vCoordinates.x < rect.vCoordinates.x) testX = rect.vCoordinates.x;	// left edge
-	else if (circle.vCoordinates.x > rect.vCoordinates.x + width) testX = rect.vCoordinates.x + width;		// right edge
+	vTestCoordinates.y = (circle.vCoordinates.y < rect.vCoordinates.y)
+		? rect.vCoordinates.y	// top edge
+		: (circle.vCoordinates.y > rect.vCoordinates.y + height)
+			? rect.vCoordinates.y + height // bottom edge
+			: vTestCoordinates.y;
 
-	if (circle.vCoordinates.y < rect.vCoordinates.y) testY = rect.vCoordinates.y;	// top edge
-	else if (circle.vCoordinates.y > rect.vCoordinates.y + height) testY = rect.vCoordinates.y + height;	// bottom edge
-
-	const distX = circle.vCoordinates.x - testX;
-	const distY = circle.vCoordinates.y - testY;
-	const distance = Math.sqrt((distX * distX) + (distY * distY));
-
-	return distance <= circle.radius;
+	return circle.vCoordinates.getDistance(vTestCoordinates) <= circle.radius;
 }
 
-const detectCircleIntersect = (c1: Circle, c2: Circle): boolean => {
-	// Calculate the distance between the two circles
-	const squareDistance = c1.vCoordinates.getDistance(c2.vCoordinates);
-
-	// When the distance is smaller or equal to the sum
-	// of the two radius, the circles touch or overlap
-	return squareDistance <= (c1.radius + c2.radius);
+const detectCircleIntersect = (c1: RoundType, c2: RoundType): boolean => {
+	return c1.vCoordinates.getDistance(c2.vCoordinates) <= (c1.radius + c2.radius);
 }
 
 export {

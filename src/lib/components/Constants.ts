@@ -1,1 +1,5 @@
-export const G = 9.8;
+const G = 9.8;
+
+export {
+	G
+}

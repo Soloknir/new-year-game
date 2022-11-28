@@ -6,13 +6,16 @@ export class Vector2D {
 		this.x = x;
 		this.y = y;
 	}
+	
+	getCopy = () => new Vector2D(this.x, this.y);
 
 	divByNumber = (divider: number): Vector2D => new Vector2D(this.x / divider, this.y / divider);
 
 	getDifference = ({ x, y }: Vector2D) => new Vector2D(this.x - x, this.y - y);
 
 	getDistance = ({ x, y }: Vector2D): number => {
-		const [dx, dy] = [this.x - x, this.y - y];
+		const dx = this.x - x;
+		const dy = this.y - y;
 		return Math.sqrt(dx * dx + dy * dy);
 	}
 

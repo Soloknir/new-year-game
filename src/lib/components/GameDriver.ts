@@ -1,8 +1,10 @@
 import { detectCircleIntersect, detectRectCircleIntersect, detectRectIntersect } from "./Helpers/Intersections";
 import Circle from "./Objects/Circle";
-import type GameObject from "./Objects/GameObject";
+import type { IGameObject } from "./Objects/Interfaces";
 import Player from "./Objects/Player";
-import Rectangle from "./Objects/Rectangle";import StaticPlatform from "./StaticObjects/StaticPlatform";
+import Rectangle from "./Objects/Rectangle";
+import StaticPlatform from "./Objects/StaticPlatform";
+import { isInstanceOfRectangular, isInstanceOfRound, type GameObjectType, type RectangularType, type RoundType } from "./Objects/Types";
 import { Vector2D } from "./Vector";
 ;
 
@@ -11,8 +13,8 @@ export default class GameDriver {
 	viewPortWidth: number;
 	viewPortHeight: number;
 
-	gameObjects: (Rectangle | Circle | Player)[] = [];
-	staticGameObjects: (StaticPlatform)[] = [];
+	gameObjects: (GameObjectType & IGameObject)[] = [];
+	staticGameObjects: StaticPlatform[] = [];
 	player: Player | null = null;
 	
 	secondsPassed = 0;
@@ -27,7 +29,9 @@ export default class GameDriver {
 		
 		this.staticGameObjects = [
 			new StaticPlatform(this.context, new Vector2D(100, 100)),
+			new StaticPlatform(this.context, new Vector2D(500, 200)),
 		];
+
 		window.requestAnimationFrame(this.gameLoop);
 	}
 	
@@ -39,6 +43,7 @@ export default class GameDriver {
 		this.gameObjects.forEach(obj => obj.update(this.secondsPassed));
 
 		this.detectEdgeCollisions();
+		this.detectStaticObjectCollision()
 		this.detectCollisions();
 
 		this.context.clearRect(0, 0, this.viewPortWidth, this.viewPortHeight);
@@ -63,57 +68,77 @@ export default class GameDriver {
 	detectEdgeCollisions = () => {
 		this.gameObjects.forEach((obj) => {
 			const { vCoordinates: vCoordinates, vVelocity } = obj;
-			let dLeft = 0, dRight = 0, dTop = 0, dBottom = 0;
-
-			if (obj instanceof Circle) {
-				dLeft = dRight = dTop = dBottom = obj.radius;
-			} else if (obj instanceof Rectangle || obj instanceof Player) {
-				dLeft = dBottom = 0;
-				dRight = obj.width;
-				dTop = obj.height;
-			}
 
 			// Check for left and right
-			if (vCoordinates.x < 0) {
+			if (vCoordinates.x < obj.getLeft()) {
 				obj.vVelocity.x = Math.abs(vVelocity.x) * this.restitution;
-				obj.vCoordinates.x = dLeft;
-				obj.vVelocity.y = obj.vVelocity.y * (1 - this.restitution);
-			} else if (vCoordinates.x > this.viewPortWidth - dRight) {
+				obj.vCoordinates.x = obj.getLeft();
+				obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
+			} else if (vCoordinates.x > this.viewPortWidth - obj.getRight()) {
 				obj.vVelocity.x = -Math.abs(vVelocity.x) * this.restitution;
-				obj.vCoordinates.x = this.viewPortWidth - dRight;
-				obj.vVelocity.y = obj.vVelocity.y * (1 - this.restitution);
+				obj.vCoordinates.x = this.viewPortWidth - obj.getRight();
+				obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
 			}
 
 			// Check for bottom and top
-			if (vCoordinates.y < dBottom) {
+			if (vCoordinates.y < -obj.getBottom()) {
 				obj.vVelocity.y = Math.abs(vVelocity.y) * this.restitution;
-				obj.vCoordinates.y = dBottom;
+				obj.vCoordinates.y = -obj.getBottom();
 				obj.isAtFloor = true;
-				obj.vVelocity.x = obj.vVelocity.x * (1 - this.restitution);
-			} else if (vCoordinates.y > this.viewPortHeight - dTop) {
+				obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
+			} else if (vCoordinates.y > this.viewPortHeight - obj.getTop()) {
 				obj.vVelocity.y = -Math.abs(vVelocity.y) * this.restitution;
-				obj.vCoordinates.y = this.viewPortHeight - dTop;
-				obj.vVelocity.x = obj.vVelocity.x * (1 - this.restitution);
+				obj.vCoordinates.y = this.viewPortHeight - obj.getTop();
 			}
 		});
 	}
 
-	detectObjectIntersect = <T extends GameObject>(o1: T, o2: T): boolean => {
-		if (o1 instanceof Circle) {
-			if (o2 instanceof Circle) {
-				return detectCircleIntersect(o1, o2)
+	detectStaticObjectCollision = (): void => {
+		this.staticGameObjects.forEach((staticPlatform: StaticPlatform) => {
+			let isColliding = false
+			this.gameObjects.forEach((obj) => {
+				if (this.detectObjectIntersect(staticPlatform, obj)) {
+					if ((obj.vCoordinates.y + obj.getBottom() > staticPlatform.vCoordinates.y + staticPlatform.getBottom())
+						&& (obj.vCoordinates.y + obj.getTop() > staticPlatform.vCoordinates.y + staticPlatform.getTop())) {
+						obj.vCoordinates.y = staticPlatform.vCoordinates.y + staticPlatform.getTop() - obj.getBottom();
+						obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
+						obj.vVelocity.y = 1;
+						obj.isAtFloor = true;
+					}
+
+					if ((obj.vCoordinates.y + obj.getTop() < staticPlatform.vCoordinates.y + staticPlatform.getTop())
+						&& (obj.vCoordinates.y + obj.getBottom() < staticPlatform.vCoordinates.y + staticPlatform.getBottom())) {
+						obj.vCoordinates.y = staticPlatform.vCoordinates.y - obj.getTop();
+						obj.vVelocity.y = -1;
+					}
+
+
+
+					staticPlatform.color = 'blue';
+					isColliding = true;
+				}
+			});
+
+			staticPlatform.color = isColliding ? 'blue' : 'green';
+		})
+	}
+
+	detectObjectIntersect = (o1: GameObjectType, o2: GameObjectType): boolean => {
+		if (isInstanceOfRound(o1)) {
+			if (isInstanceOfRound(o2)) {
+				return detectCircleIntersect(o1 as RoundType, o2 as RoundType)
 			}
-			if (o2 instanceof Rectangle || o2 instanceof Player) {
-				return detectRectCircleIntersect(o2, o1)
+
+			if (isInstanceOfRectangular(o2)) {
+				return detectRectCircleIntersect(o2 as RectangularType, o1 as RoundType)
 			}
 		}
 
-		if (o1 instanceof Rectangle || o1 instanceof Player) {
-			if (o2 instanceof Rectangle || o2 instanceof Player) {
-				return detectRectIntersect(o1, o2);
-			}
-			if (o2 instanceof Circle) {
-				return detectRectCircleIntersect(o1, o2);
+		if (isInstanceOfRectangular(o1)) {
+			if (isInstanceOfRectangular(o2)) {
+				return detectRectIntersect(o1 as RectangularType, o2 as RectangularType);
+			} else {
+				return detectRectCircleIntersect(o1 as RectangularType, o2 as RoundType);
 			}
 		}
 
@@ -156,12 +181,11 @@ export default class GameDriver {
 	}
 
 	clearWorldState = () => this.gameObjects = [];
-	addCircle = () => this.gameObjects.push(new Circle(this.context, new Vector2D(150, 100), new Vector2D(50, 20)));
-	addRect = () => this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 100), new Vector2D(-50, 20)));
+	addCircle = () => this.gameObjects.push(new Circle(this.context, new Vector2D(250, 200), new Vector2D(0, 20)));
+	addRect = () => this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 200), new Vector2D(-50, 20)));
 	
 	spawnPlayer = () => {
 		this.player = new Player(this.context, new Vector2D(250, 250));
 		this.gameObjects.push(this.player);
 	}
-
 }

@@ -1,25 +1,38 @@
 import { Vector2D } from "../Vector";
 import { G } from "../Constants";
-import GameObject from "./GameObject";
+import type { IGameObject } from "./Interfaces";
 
-export default class Player extends GameObject {
+export default class Player implements IGameObject {
+	context: CanvasRenderingContext2D;
+	vCoordinates: Vector2D;
+	vVelocity: Vector2D;
 	width: number;
 	height: number;
-	horizontalMoveSpeed: number;
+	friction: number;
 	mass: number;
-
+	horizontalMoveSpeed: number;
+	jumpImpulse: number;
+	
+	isColliding = false;
+	isAtFloor = false;
 	isJumping = false;
 	isMoveRight = false;
 	isMoveLeft = false;
 
 	constructor(context: CanvasRenderingContext2D, coords: Vector2D, velocity = new Vector2D()) {
-		super(context, coords, velocity);
+		
+		this.context = context
+		this.vCoordinates = coords
+		this.vVelocity = velocity
 
 		this.width = 50;
 		this.height = 50;
-		this.horizontalMoveSpeed = 250;
+		this.friction = 0.1;
 		this.mass = 100;
+		this.horizontalMoveSpeed = 500;
+		this.jumpImpulse = 500;
 	}
+
 
 	draw = (viewPortHeight: number): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
@@ -42,7 +55,7 @@ export default class Player extends GameObject {
 
 		if (this.isJumping && this.isAtFloor) {
 			this.isAtFloor = false;
-			this.vVelocity.y = 500;
+			this.vVelocity.y = this.jumpImpulse;
 		}
 
 
@@ -50,27 +63,15 @@ export default class Player extends GameObject {
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
 	}
 
-	startJumping = () => {
-		this.isJumping = true;
-	}
+	getTop = () => this.height;
+	getBottom = () => 0;
+	getLeft = () => 0;
+	getRight = () => this.width;
 
-	stopJumping = () => {
-		this.isJumping = false;
-	}
-
-	startMoveRight = () => {
-		this.isMoveRight = true;
-	}
-
-	startMoveLeft = () => {
-		this.isMoveLeft = true;
-	}
-
-	stopMoveRight = () => {
-		this.isMoveRight = false;
-	}
-
-	stopMoveLeft = () => {
-		this.isMoveLeft = false;
-	}
+	startJumping = () => this.isJumping = true;
+	stopJumping = () => this.isJumping = false;
+	startMoveRight = () => this.isMoveRight = true;
+	stopMoveRight = () => this.isMoveRight = false;
+	startMoveLeft = () => this.isMoveLeft = true;
+	stopMoveLeft = () => this.isMoveLeft = false;
 }

@@ -1,16 +1,27 @@
 import { Vector2D } from "../Vector";
 import { G } from "../Constants";
-import GameObject from "./GameObject";
+import type { IGameObject } from "./Interfaces";
 
-export default class Circle extends GameObject {
+export default class Circle implements IGameObject {
+	context: CanvasRenderingContext2D;
+	vCoordinates: Vector2D;
+	vVelocity: Vector2D;
+
+	isColliding = false;
+	isAtFloor = false;
+
 	radius: number;
+	friction: number;
 	mass: number;
 
-	constructor(context: CanvasRenderingContext2D, coords: Vector2D, velocity = new Vector2D()) {
-		super(context, coords, velocity);
+	constructor(context: CanvasRenderingContext2D, vCoordinates: Vector2D, vVelocity = new Vector2D()) {
+		this.context = context;
+		this.vCoordinates = vCoordinates;
+		this.vVelocity = vVelocity;
 
 		this.radius = 15;
-		this.mass = Math.random() * 30;
+		this.friction = 0.005;
+		this.mass = 30;
 	}
 
 	draw = (viewPortHeight: number): void => {
@@ -29,4 +40,9 @@ export default class Circle extends GameObject {
 		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
 	}
+
+	getTop = () => this.radius;
+	getBottom = () => -this.radius;
+	getRight = () => this.radius;
+	getLeft = () => -this.radius;
 }
