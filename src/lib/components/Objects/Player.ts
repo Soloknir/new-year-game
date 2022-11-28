@@ -41,6 +41,9 @@ export default class Player implements IGameObject {
 
 	draw = (viewPortHeight: number): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
+		
+		// this.context.fillStyle = 'grey';
+		// this.context.fillRect(viewCoords.x, viewCoords.y - this.height, this.getRight(), this.height);
 
 		if (this.isMoveRight) {
 			this.column = Math.round(this.time * 10 % 8);
@@ -52,6 +55,7 @@ export default class Player implements IGameObject {
 			this.row = 2;
 			this.column = 0;
 		}
+		
 		const frameWidth = 64;
 		const frameHeight = 64;
 		this.context.drawImage(this.sprite, this.column * frameWidth + frameWidth / 4, this.row * frameHeight, frameWidth - frameWidth / 4, frameHeight - 2, viewCoords.x, viewCoords.y - this.height, this.width, this.height);
@@ -81,7 +85,7 @@ export default class Player implements IGameObject {
 	getTop = () => this.height;
 	getBottom = () => 0;
 	getLeft = () => 0;
-	getRight = () => this.width;
+	getRight = () => this.width - 16;
 
 	startJumping = () => this.isJumping = true;
 	stopJumping = () => this.isJumping = false;

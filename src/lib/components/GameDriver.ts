@@ -7,11 +7,32 @@ import StaticPlatform from "./Objects/StaticPlatform";
 import { isInstanceOfRectangular, isInstanceOfRound, type GameObjectType, type RectangularType, type RoundType } from "./Objects/Types";
 import { Vector2D } from "./Vector";
 
+interface IGameState {
+	isGameOver: boolean;
+	player: {
+		spawned: boolean;
+		position: Vector2D | null;
+		isAtFloor: boolean;
+	};
+	platformsQty: number;
+	objectsQty: number;
+}
 
 export default class GameDriver {
 	context: CanvasRenderingContext2D;
 	viewPortWidth: number;
 	viewPortHeight: number;
+	
+	gameState: IGameState = {
+		isGameOver: false,
+		player: {
+			spawned: false,
+			position: null,
+			isAtFloor: false
+		},
+		platformsQty: 0,
+		objectsQty: 0,
+	}
 
 	gameObjects: (GameObjectType & IGameObject)[] = [];
 	staticGameObjects: StaticPlatform[] = [];
@@ -31,7 +52,6 @@ export default class GameDriver {
 
 	constructor(context: CanvasRenderingContext2D, width: number, height: number) {
 		this.context = context;
-
 		this.viewPortWidth = width;
 		this.viewPortHeight = height;
 		
@@ -49,8 +69,8 @@ export default class GameDriver {
 		this.time += this.secondsPassed;
 		this.oldTimeStamp = timeStamp;
 
-		// Loop over all game objects
-		this.gameObjects.forEach(obj => obj.update(this.secondsPassed));
+		this.updateGameState();
+		this.gameObjects.forEach(obj => obj.update(Math.min(this.secondsPassed, 0.1)));
 
 		this.detectEdgeCollisions();
 		this.detectStaticObjectCollision()
@@ -59,13 +79,43 @@ export default class GameDriver {
 		this.context.clearRect(0, 0, this.viewPortWidth, this.viewPortHeight);
 
 		this.drawFps(Math.round(1 / this.secondsPassed));
+		this.drawGameState();
 		
 
-		// Do the same to draw
 		this.staticGameObjects.forEach(obj => obj.draw(this.viewPortHeight));
 		this.gameObjects.forEach(obj => obj.draw(this.viewPortHeight));
-
+		
 		window.requestAnimationFrame(this.gameLoop);
+	}
+
+	updateGameState = () => {
+		this.gameState = {
+			...this.gameState,
+			player: {
+				spawned: Boolean(this.player),
+				position: this.player?.vCoordinates || null,
+				isAtFloor: this.player?.isAtFloor || false,
+			},
+			platformsQty: this.staticGameObjects.length,
+			objectsQty: this.player ? this.gameObjects.length - 1 : this.gameObjects.length,
+		}
+	}
+
+	drawGameState = () => {
+		const { player, isGameOver, platformsQty, objectsQty } = this.gameState;
+
+		this.context.fillStyle = 'black';
+		this.context.font = '15px Arial';
+		this.context.textAlign = 'left';
+		this.context.textBaseline = 'top';
+
+		this.context.fillText(`Game is over: ${isGameOver}; Player is spawned ${player.spawned};`, 20, 10);
+		if (player?.position) {
+			this.context.fillText(`Player position: ${Math.round(player.position.x)} ${Math.round(player.position.y)}; Player at the floor: ${player.isAtFloor};`, 20, 30);
+		} else {
+			this.context.fillText(`Player position: ${null}; Player at the floor: ${player.isAtFloor};`, 20, 30);
+		}
+		this.context.fillText(`Platforms: ${platformsQty}; another objects: ${objectsQty};`, 20, 50);
 	}
 
 	drawFps = (timeStamp: number) => {
@@ -110,7 +160,9 @@ export default class GameDriver {
 			this.gameObjects.forEach((obj) => {
 				if (this.detectObjectIntersect(staticPlatform, obj)) {
 					if ((obj.vCoordinates.y + obj.getBottom() > staticPlatform.vCoordinates.y + staticPlatform.getBottom())
-						&& (obj.vCoordinates.y + obj.getTop() > staticPlatform.vCoordinates.y + staticPlatform.getTop())) {
+						&& (obj.vCoordinates.y + obj.getTop() > staticPlatform.vCoordinates.y + staticPlatform.getTop())
+						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getLeft())
+						&& (obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())) {	
 						obj.vCoordinates.y = staticPlatform.vCoordinates.y + staticPlatform.getTop() - obj.getBottom();
 						obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
 						obj.vVelocity.y = 1;
@@ -118,7 +170,9 @@ export default class GameDriver {
 					}
 
 					if ((obj.vCoordinates.y + obj.getTop() < staticPlatform.vCoordinates.y + staticPlatform.getTop())
-						&& (obj.vCoordinates.y + obj.getBottom() < staticPlatform.vCoordinates.y + staticPlatform.getBottom())) {
+						&& (obj.vCoordinates.y + obj.getBottom() < staticPlatform.vCoordinates.y + staticPlatform.getBottom())
+						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getLeft())
+						&& (obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())) {
 						obj.vCoordinates.y = staticPlatform.vCoordinates.y - obj.getTop();
 						obj.vVelocity.y = -1;
 					}
@@ -200,7 +254,7 @@ export default class GameDriver {
 		img.src = 'src/lib/components/Sprites/santa.sprite.png';
 	}
 
-	clearWorldState = () => this.gameObjects = [];
+	clearWorldState = () => {this.gameObjects = []; this.player = null};
 	addCircle = () => this.gameObjects.push(new Circle(this.context, new Vector2D(250, 200), new Vector2D(0, 20)));
 	addRect = () => this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 200), new Vector2D(-50, 20)));
 	
