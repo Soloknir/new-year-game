@@ -1,4 +1,4 @@
-import type { Vector2D } from "../Objects/GameObject";
+import type { Vector2D } from "../Vector";
 
 export default class StaticGameObject {
 	context: CanvasRenderingContext2D;
@@ -9,5 +9,5 @@ export default class StaticGameObject {
 		this.vCoordinates = coords;
 	}
 
-	draw = (): void => { /*virtual */ };
+	draw = (_: number): void => { /*virtual */ };
 }

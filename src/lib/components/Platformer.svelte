@@ -29,15 +29,26 @@
 			gameDriver = new GameDriver(context, rect.width, rect.height);
 
 			window.addEventListener('keydown', handleKeyDown);
+			window.addEventListener('keyup', handleKeyUp);
 		}
 	});
 
 	function handleKeyDown(event: KeyboardEvent) {
 		if (gameDriver && gameDriver.player) {
 			switch(event.code) {
-				case 'KeyW': gameDriver.player.jump(); break;
-				case 'KeyD': gameDriver.player.moveRight(); break;
-				case 'KeyA': gameDriver.player.moveLeft(); break;
+				case 'KeyW': gameDriver.player.startJumping(); break;
+				case 'KeyD': gameDriver.player.startMoveRight(); break;
+				case 'KeyA': gameDriver.player.startMoveLeft(); break;
+			}
+		}
+	}
+
+	function handleKeyUp(event: KeyboardEvent) {
+		if (gameDriver && gameDriver.player) {
+			switch(event.code) {
+				case 'KeyW': gameDriver.player.stopJumping(); break;
+				case 'KeyD': gameDriver.player.stopMoveRight(); break;
+				case 'KeyA': gameDriver.player.stopMoveLeft(); break;
 			}
 		}
 	}

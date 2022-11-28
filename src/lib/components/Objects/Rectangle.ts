@@ -1,4 +1,6 @@
-import GameObject, { G, Vector2D } from "./GameObject";
+import { Vector2D } from "../Vector";
+import { G } from "../Constants";
+import GameObject from "./GameObject";
 
 export default class Rectangle extends GameObject {
 	width: number;
