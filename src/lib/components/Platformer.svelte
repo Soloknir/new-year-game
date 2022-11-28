@@ -55,7 +55,7 @@
 </script>
 
 <div class="container">
-	<canvas bind:this={canvas} width="{750}" height="{400}">
+	<canvas bind:this={canvas} width="{1024}" height="{512}">
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
 	<div class="dev toolbar">
@@ -65,10 +65,12 @@
 		<button on:click="{handleAddRect}">Add rectangle</button>
 	</div>
 	<div class="dev player-state">
-		<!-- <div>Player coords: {gameDriver.player.vCoordinates.x} {gameDriver.player.vCoordinates.y}</div>
+		<!--
+			<div>Player coords: {gameDriver.player.vCoordinates.x} {gameDriver.player.vCoordinates.y}</div>
 			<div>Player horizontal speed: {gameDriver.player.vVelocity.x}</div>
 			<div>Player vertical speed: {gameDriver.player.vVelocity.y}</div>
-			<div>Player at the floor: {gameDriver.player.isAtFloor}</div> -->
+			<div>Player at the floor: {gameDriver.player.isAtFloor}</div>
+		-->
 	</div>
 </div>
 

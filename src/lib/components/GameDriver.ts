@@ -2,7 +2,8 @@ import { detectCircleIntersect, detectRectCircleIntersect, detectRectIntersect }
 import Circle from "./Objects/Circle";
 import type GameObject from "./Objects/GameObject";
 import Player from "./Objects/Player";
-import Rectangle from "./Objects/Rectangle";import { Vector2D } from "./Vector";
+import Rectangle from "./Objects/Rectangle";import StaticPlatform from "./StaticObjects/StaticPlatform";
+import { Vector2D } from "./Vector";
 ;
 
 export default class GameDriver {
@@ -11,6 +12,7 @@ export default class GameDriver {
 	viewPortHeight: number;
 
 	gameObjects: (Rectangle | Circle | Player)[] = [];
+	staticGameObjects: (StaticPlatform)[] = [];
 	player: Player | null = null;
 	
 	secondsPassed = 0;
@@ -22,7 +24,10 @@ export default class GameDriver {
 
 		this.viewPortWidth = width;
 		this.viewPortHeight = height;
-
+		
+		this.staticGameObjects = [
+			new StaticPlatform(this.context, new Vector2D(100, 100)),
+		];
 		window.requestAnimationFrame(this.gameLoop);
 	}
 	
@@ -41,6 +46,7 @@ export default class GameDriver {
 		this.drawFps(Math.round(1 / this.secondsPassed));
 
 		// Do the same to draw
+		this.staticGameObjects.forEach(obj => obj.draw(this.viewPortHeight));
 		this.gameObjects.forEach(obj => obj.draw(this.viewPortHeight));
 
 		window.requestAnimationFrame(this.gameLoop);
@@ -79,7 +85,7 @@ export default class GameDriver {
 			}
 
 			// Check for bottom and top
-			if (vCoordinates.y < 0) {
+			if (vCoordinates.y < dBottom) {
 				obj.vVelocity.y = Math.abs(vVelocity.y) * this.restitution;
 				obj.vCoordinates.y = dBottom;
 				obj.isAtFloor = true;
@@ -158,12 +164,4 @@ export default class GameDriver {
 		this.gameObjects.push(this.player);
 	}
 
-	easeInOutQuint = (t: number, b: number, c: number, d: number) => {
-		if ((t /= d / 2) < 1) return (c / 2) * t * t * t * t * t + b;
-		return (c / 2) * ((t -= 2) * t * t * t * t + 2) + b;
-	}
-
-	easeLinear = (t: number, b: number, c: number, d: number) => {
-		return (c * t) / d + b;
-	}
 }

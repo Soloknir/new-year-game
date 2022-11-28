@@ -16,8 +16,7 @@
 		flex-direction: column
 		min-height: 100vh
 	
-		main 
-			flex: 1
+		main
 			display: flex
 			flex-direction: column
 			padding: 1rem
