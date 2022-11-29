@@ -6,6 +6,7 @@ import Rectangle from "./Objects/Rectangle";
 import StaticPlatform from "./Objects/StaticPlatform";
 import { isInstanceOfRectangular, isInstanceOfRound, type GameObjectType, type RectangularType, type RoundType } from "./Objects/Types";
 import { Vector2D } from "./Vector";
+import MapJson from "./map.json";
 
 interface IGameState {
 	isGameOver: boolean;
@@ -23,7 +24,8 @@ export default class GameDriver {
 	context: CanvasRenderingContext2D;
 	viewPortWidth: number;
 	viewPortHeight: number;
-	
+	vViewCoordinates = new Vector2D();
+
 	gameState: IGameState = {
 		isGameOver: false,
 		player: {
@@ -41,15 +43,8 @@ export default class GameDriver {
 	player: Player | null = null;
 
 	column = 0;
-	assets = {
-		characters: {
-			player: <HTMLImageElement | null>(null)
-		},
-		platforms: {
-			simple: <HTMLImageElement | null>(null)
-		}
-	}
-	
+	assets: { [key: string]: HTMLImageElement } = {};
+
 	time = 0;
 	secondsPassed = 0;
 	oldTimeStamp = 0;
@@ -60,10 +55,22 @@ export default class GameDriver {
 		this.viewPortWidth = width;
 		this.viewPortHeight = height;
 
-		this.loadAssets();
+		this.init();
+	}
+
+	async init() {
+		await this.loadAssets([
+			'characters/player',
+			'platforms/base/head',
+			'platforms/base/body',
+		]);
+
+		this.spawnPlayer();
+		this.loadMap();
+
 		window.requestAnimationFrame(this.gameLoop);
 	}
-	
+
 	gameLoop = (timeStamp: number) => {
 		this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
 		this.time += this.secondsPassed;
@@ -80,11 +87,10 @@ export default class GameDriver {
 
 		this.drawFps(Math.round(1 / this.secondsPassed));
 		this.drawGameState();
-		
 
 		this.staticGameObjects.forEach(obj => obj.draw(this.viewPortHeight));
 		this.gameObjects.forEach(obj => obj.draw(this.viewPortHeight));
-		
+
 		window.requestAnimationFrame(this.gameLoop);
 	}
 
@@ -164,7 +170,7 @@ export default class GameDriver {
 					if ((obj.vCoordinates.y + obj.getBottom() > staticPlatform.vCoordinates.y + staticPlatform.getBottom())
 						&& (obj.vCoordinates.y + obj.getTop() > staticPlatform.vCoordinates.y + staticPlatform.getTop())
 						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getLeft())
-						&& (obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())) {	
+						&& (obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())) {
 						obj.vCoordinates.y = staticPlatform.vCoordinates.y + staticPlatform.getTop() - obj.getBottom();
 						obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
 						obj.vVelocity.y = 1;
@@ -245,7 +251,7 @@ export default class GameDriver {
 					if (speed < 0) {
 						break;
 					}
-					
+
 					const impulse = (2 * speed) / (obj1.mass + obj2.mass);
 					obj1.vVelocity.x -= impulse * obj2.mass * vCollisionNorm.x;
 					obj1.vVelocity.y -= impulse * obj2.mass * vCollisionNorm.y;
@@ -256,30 +262,34 @@ export default class GameDriver {
 		});
 	}
 
-	loadAssets = () => {
-		const playerImage = new Image();
-		playerImage.src = 'src/lib/images/santa.sprite.png';
-		playerImage.onload = () => { this.assets.characters.player = playerImage; this.spawnPlayer()};
-
-		const snowPlatformImage = new Image();
-		snowPlatformImage.src = 'src/lib/images/Snowpack/png/snow_35.png';
-		snowPlatformImage.onload = () => {
-			this.assets.platforms.simple = snowPlatformImage;
-			this.staticGameObjects = [
-				new StaticPlatform(this.context, new Vector2D(0, 0), { width: 300, height: 100 }, snowPlatformImage),
-				new StaticPlatform(this.context, new Vector2D(500, 0), { width: 300, height: 200 }, snowPlatformImage),
-				new StaticPlatform(this.context, new Vector2D(900, 0), { width: 300, height: 300 }, snowPlatformImage),
-			];
-		};
+	loadAssets = async (paths: string[]) => {	
+		const assets = await Promise.all(paths.map((path: string) => this.loadAsset(path)));
+		paths.map((path, index) => this.assets[path] = assets[index]);
 	}
 
-	clearWorldState = () => {this.gameObjects = []; this.player = null};
+	loadAsset = (path: string) => new Promise<HTMLImageElement>((resolve) => {
+		const image = new Image();
+		image.src = `src/lib/images/${path}.png`;
+		image.onload = () => resolve(image);
+	})
+
+	loadMap = () => {
+		const textures = {
+			head: this.assets['platforms/base/head'],
+			body: this.assets['platforms/base/body']
+		};
+
+		MapJson.platforms.map(({ position, size }) => this.staticGameObjects
+			.push(new StaticPlatform(this.context, new Vector2D(position.x, position.y), size, textures)));
+	}
+
+	clearWorldState = () => { this.gameObjects = []; this.player = null };
 	addCircle = () => this.gameObjects.push(new Circle(this.context, new Vector2D(250, 200), new Vector2D(0, 20)));
 	addRect = () => this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 200), new Vector2D(-50, 20)));
-	
+
 	spawnPlayer = () => {
-		if (this.assets.characters.player) {
-			this.player = new Player(this.context, new Vector2D(250, 250), this.assets.characters.player);
+		if (this.assets['characters/player']) {
+			this.player = new Player(this.context, new Vector2D(250, 250), this.assets['characters/player']);
 			this.gameObjects.push(this.player);
 		}
 	}

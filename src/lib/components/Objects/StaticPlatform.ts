@@ -6,14 +6,14 @@ export default class StaticPlatform implements IStaticGameObject {
 	vCoordinates: Vector2D;
 	width: number;
 	height: number;
-	texture: HTMLImageElement;
+	textures: { head: HTMLImageElement, body: HTMLImageElement };
 
-	constructor(context: CanvasRenderingContext2D, vCoordinates: Vector2D, size: IRectangleSize, texture: HTMLImageElement) {
+	constructor(context: CanvasRenderingContext2D, vCoordinates: Vector2D, size: IRectangleSize, textures: { head: HTMLImageElement, body: HTMLImageElement }) {
 		this.context = context;
 		this.vCoordinates = vCoordinates;
 		this.width = size.width;
 		this.height = size.height;
-		this.texture = texture;
+		this.textures = textures;
 	}
 
 	draw = (viewPortHeight: number): void => {
@@ -26,7 +26,8 @@ export default class StaticPlatform implements IStaticGameObject {
 
 			while (width > 0) {
 				this.context.drawImage(
-					this.texture, 0, 0,
+					row === 0 ? this.textures.head : this.textures.body,
+					0, 0,
 					Math.min(128, width),
 					Math.min(128, height),
 					128 * column + viewCoords.x,
@@ -42,7 +43,6 @@ export default class StaticPlatform implements IStaticGameObject {
 			height -= 128;
 			row++;
 		}
-
 	}
 
 	getTop = () => this.height;

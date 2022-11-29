@@ -1,0 +1,19 @@
+{
+	"platforms": [
+		{
+			"name": "base",
+			"position": { "x": 0, "y": 0 },
+			"size": { "width": 300, "height": 100 }
+		},
+		{
+			"name": "base",
+			"position": { "x": 500, "y": 0 },
+			"size": { "width": 300, "height": 200 }
+		},
+		{
+			"name": "base",
+			"position": { "x": 900, "y": 0 },
+			"size": { "width": 300, "height": 300 }
+		}
+	]
+}
