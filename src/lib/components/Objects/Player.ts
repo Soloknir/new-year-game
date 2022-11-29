@@ -17,7 +17,7 @@ export default class Player implements IGameObject {
 	time = 0;
 	column = 0;
 	row = 2
-	
+
 	isColliding = false;
 	isAtFloor = false;
 	isJumping = false;
@@ -41,7 +41,7 @@ export default class Player implements IGameObject {
 
 	draw = (viewPortHeight: number): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
-		
+
 		// this.context.fillStyle = 'grey';
 		// this.context.fillRect(viewCoords.x, viewCoords.y - this.height, this.getRight(), this.height);
 
@@ -55,22 +55,32 @@ export default class Player implements IGameObject {
 			this.row = 2;
 			this.column = 0;
 		}
-		
+
 		const frameWidth = 64;
 		const frameHeight = 64;
-		this.context.drawImage(this.sprite, this.column * frameWidth + frameWidth / 4, this.row * frameHeight, frameWidth - frameWidth / 4, frameHeight - 2, viewCoords.x, viewCoords.y - this.height, this.width, this.height);
+		this.context.drawImage(
+			this.sprite,
+			this.column * frameWidth + frameWidth / 4,
+			this.row * frameHeight,
+			frameWidth - frameWidth / 4,
+			frameHeight - 2,
+			viewCoords.x,
+			viewCoords.y - this.height,
+			this.width,
+			this.height
+		);
 	}
 
 	update = (timePassed: number): void => {
 		this.time += timePassed;
 		this.vVelocity.y -= (G * this.mass) * timePassed;
+		this.vVelocity.x = 0;
 
-		let horizontalSpeed = this.vVelocity.x;
 		if (this.isMoveRight) {
-			horizontalSpeed += this.horizontalMoveSpeed;
+			this.vVelocity.x += this.horizontalMoveSpeed;
 		}
 		if (this.isMoveLeft) {
-			horizontalSpeed -= this.horizontalMoveSpeed;
+			this.vVelocity.x -= this.horizontalMoveSpeed;
 		}
 
 		if (this.isJumping && this.isAtFloor) {
@@ -78,8 +88,15 @@ export default class Player implements IGameObject {
 			this.vVelocity.y = this.jumpImpulse;
 		}
 
-		this.vCoordinates.x += horizontalSpeed * timePassed;
+		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
+	}
+
+	getCenter = () => {
+		const vMid = this.vCoordinates.getCopy();
+		vMid.x += this.width / 2;
+		vMid.y += this.height / 2;
+		return vMid;
 	}
 
 	getTop = () => this.height;

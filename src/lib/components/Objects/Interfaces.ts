@@ -1,5 +1,10 @@
 import type { Vector2D } from "../Vector";
 
+interface IRectangleSize {
+	width: number;
+	height: number;
+}
+
 interface IStaticGameObject {
 	context: CanvasRenderingContext2D;
 	vCoordinates: Vector2D;
@@ -19,9 +24,11 @@ interface IGameObject extends IStaticGameObject {
 	isAtFloor: boolean;
 
 	update: (_: number) => void;
+	getCenter: () => Vector2D;
 }
 
 export type {
+	IRectangleSize,
 	IStaticGameObject,
 	IGameObject
 }

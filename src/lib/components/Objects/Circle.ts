@@ -41,6 +41,8 @@ export default class Circle implements IGameObject {
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
 	}
 
+	getCenter = () => this.vCoordinates;
+
 	getTop = () => this.radius;
 	getBottom = () => -this.radius;
 	getRight = () => this.radius;

@@ -23,7 +23,7 @@ export default class Rectangle implements IGameObject {
 		this.width = 50;
 		this.height = 50;
 		this.friction = 0.1;
-		this.mass = 100;
+		this.mass = 50;
 	}
 
 
@@ -38,6 +38,13 @@ export default class Rectangle implements IGameObject {
 		this.vVelocity.y -= (G * this.mass) * timePassed;
 		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
+	}
+
+	getCenter = () => {
+		const vMid = this.vCoordinates.getCopy();
+		vMid.x += this.width / 2;
+		vMid.y += this.height / 2;
+		return vMid;
 	}
 
 	getTop = () => this.height;

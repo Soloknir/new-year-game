@@ -12,6 +12,7 @@ interface IGameState {
 	player: {
 		spawned: boolean;
 		position: Vector2D | null;
+		velocity: Vector2D | null;
 		isAtFloor: boolean;
 	};
 	platformsQty: number;
@@ -28,6 +29,7 @@ export default class GameDriver {
 		player: {
 			spawned: false,
 			position: null,
+			velocity: null,
 			isAtFloor: false
 		},
 		platformsQty: 0,
@@ -42,6 +44,9 @@ export default class GameDriver {
 	assets = {
 		characters: {
 			player: <HTMLImageElement | null>(null)
+		},
+		platforms: {
+			simple: <HTMLImageElement | null>(null)
 		}
 	}
 	
@@ -54,11 +59,6 @@ export default class GameDriver {
 		this.context = context;
 		this.viewPortWidth = width;
 		this.viewPortHeight = height;
-		
-		this.staticGameObjects = [
-			new StaticPlatform(this.context, new Vector2D(100, 100)),
-			new StaticPlatform(this.context, new Vector2D(500, 200)),
-		];
 
 		this.loadAssets();
 		window.requestAnimationFrame(this.gameLoop);
@@ -94,6 +94,7 @@ export default class GameDriver {
 			player: {
 				spawned: Boolean(this.player),
 				position: this.player?.vCoordinates || null,
+				velocity: this.player?.vVelocity || null,
 				isAtFloor: this.player?.isAtFloor || false,
 			},
 			platformsQty: this.staticGameObjects.length,
@@ -110,10 +111,12 @@ export default class GameDriver {
 		this.context.textBaseline = 'top';
 
 		this.context.fillText(`Game is over: ${isGameOver}; Player is spawned ${player.spawned};`, 20, 10);
-		if (player?.position) {
-			this.context.fillText(`Player position: ${Math.round(player.position.x)} ${Math.round(player.position.y)}; Player at the floor: ${player.isAtFloor};`, 20, 30);
-		} else {
-			this.context.fillText(`Player position: ${null}; Player at the floor: ${player.isAtFloor};`, 20, 30);
+		if (player?.position && player?.velocity) {
+			this.context.fillText(`Player
+				Position: ${Math.round(player.position.x)} ${Math.round(player.position.y)};
+				Velocity: ${Math.round(player.velocity.x)} ${Math.round(player.velocity.y)};
+				Atfloor: ${player.isAtFloor};
+			`, 20, 30);
 		}
 		this.context.fillText(`Platforms: ${platformsQty}; another objects: ${objectsQty};`, 20, 50);
 	}
@@ -156,7 +159,6 @@ export default class GameDriver {
 
 	detectStaticObjectCollision = (): void => {
 		this.staticGameObjects.forEach((staticPlatform: StaticPlatform) => {
-			let isColliding = false
 			this.gameObjects.forEach((obj) => {
 				if (this.detectObjectIntersect(staticPlatform, obj)) {
 					if ((obj.vCoordinates.y + obj.getBottom() > staticPlatform.vCoordinates.y + staticPlatform.getBottom())
@@ -177,14 +179,25 @@ export default class GameDriver {
 						obj.vVelocity.y = -1;
 					}
 
+					if ((obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getLeft())
+						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getLeft())
+						&& (obj.vCoordinates.y + obj.getTop() < staticPlatform.vCoordinates.y + staticPlatform.getTop())
+						&& (obj.vCoordinates.y + obj.getBottom() >= staticPlatform.vCoordinates.y + staticPlatform.getBottom())
+					) {
+						obj.vCoordinates.x = staticPlatform.vCoordinates.x - obj.getRight();
+						obj.vVelocity.x = -1;
+					}
 
-
-					staticPlatform.color = 'blue';
-					isColliding = true;
+					if ((obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())
+						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getRight())
+						&& (obj.vCoordinates.y + obj.getTop() < staticPlatform.vCoordinates.y + staticPlatform.getTop())
+						&& (obj.vCoordinates.y + obj.getBottom() >= staticPlatform.vCoordinates.y + staticPlatform.getBottom())
+					) {
+						obj.vCoordinates.x = staticPlatform.vCoordinates.x + staticPlatform.getRight();
+						obj.vVelocity.x = 1;
+					}
 				}
 			});
-
-			staticPlatform.color = isColliding ? 'blue' : 'green';
 		})
 	}
 
@@ -215,7 +228,6 @@ export default class GameDriver {
 
 		// Reset collision state of all objects
 		this.gameObjects.forEach((obj) => obj.isColliding = false);
-
 		this.gameObjects.forEach((obj1, i) => {
 			for (let j = i + 1; j < this.gameObjects.length; j++) {
 				obj2 = this.gameObjects[j];
@@ -225,16 +237,15 @@ export default class GameDriver {
 					obj1.isColliding = true;
 					obj2.isColliding = true;
 
-					const vCollision = obj2.vCoordinates.getDifference(obj1.vCoordinates); // Get collision vector
-					const distance = obj1.vCoordinates.getDistance(obj2.vCoordinates); // Get distance between 
+					const vCollision = obj2.getCenter().getDifference(obj1.getCenter()); // Get collision vector
+					const distance = obj1.getCenter().getDistance(obj2.getCenter()); // Get distance between 
 					const vCollisionNorm = vCollision.divByNumber(distance); // Get normalized collision vector
 					const vRelativeVelocity = obj1.vVelocity.getDifference(obj2.vVelocity); // Get relative velocity vector
 					const speed = vRelativeVelocity.x * vCollisionNorm.x + vRelativeVelocity.y * vCollisionNorm.y;
-
 					if (speed < 0) {
 						break;
 					}
-
+					
 					const impulse = (2 * speed) / (obj1.mass + obj2.mass);
 					obj1.vVelocity.x -= impulse * obj2.mass * vCollisionNorm.x;
 					obj1.vVelocity.y -= impulse * obj2.mass * vCollisionNorm.y;
@@ -246,12 +257,20 @@ export default class GameDriver {
 	}
 
 	loadAssets = () => {
-		const img = new Image();
-		img.onload = () => {
-			this.assets.characters.player = img;
-			this.spawnPlayer();
+		const playerImage = new Image();
+		playerImage.src = 'src/lib/images/santa.sprite.png';
+		playerImage.onload = () => { this.assets.characters.player = playerImage; this.spawnPlayer()};
+
+		const snowPlatformImage = new Image();
+		snowPlatformImage.src = 'src/lib/images/Snowpack/png/snow_35.png';
+		snowPlatformImage.onload = () => {
+			this.assets.platforms.simple = snowPlatformImage;
+			this.staticGameObjects = [
+				new StaticPlatform(this.context, new Vector2D(0, 0), { width: 300, height: 100 }, snowPlatformImage),
+				new StaticPlatform(this.context, new Vector2D(500, 0), { width: 300, height: 200 }, snowPlatformImage),
+				new StaticPlatform(this.context, new Vector2D(900, 0), { width: 300, height: 300 }, snowPlatformImage),
+			];
 		};
-		img.src = 'src/lib/components/Sprites/santa.sprite.png';
 	}
 
 	clearWorldState = () => {this.gameObjects = []; this.player = null};
