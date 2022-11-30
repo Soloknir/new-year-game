@@ -1,24 +1,9 @@
 import { detectCircleIntersect, detectRectCircleIntersect, detectRectIntersect } from "./Helpers/Intersections";
-import Circle from "./Objects/Circle";
-import type { IGameObject } from "./Objects/Interfaces";
-import Player from "./Objects/Player";
-import Rectangle from "./Objects/Rectangle";
-import StaticPlatform from "./Objects/StaticPlatform";
-import { isInstanceOfRectangular, isInstanceOfRound, type GameObjectType, type RectangularType, type RoundType } from "./Objects/Types";
+import { isInstanceOfColliding, isInstanceOfRectangular, isInstanceOfRound, isInstanceOfSupportPhisics, type GameObject, type IColliding, type ISupportPhisics } from "./Objects/GameObject";
+import type { IRectangleSize } from "./Objects/Interfaces";
+import Platform from "./Objects/Platform";
+import type { RectangularType, RoundType } from "./Objects/Types";
 import { Vector2D } from "./Vector";
-import MapJson from "./map.json";
-
-interface IGameState {
-	isGameOver: boolean;
-	player: {
-		spawned: boolean;
-		position: Vector2D | null;
-		velocity: Vector2D | null;
-		isAtFloor: boolean;
-	};
-	platformsQty: number;
-	objectsQty: number;
-}
 
 export default class GameDriver {
 	context: CanvasRenderingContext2D;
@@ -26,94 +11,35 @@ export default class GameDriver {
 	viewPortWidth: number;
 	viewPortHeight: number;
 
-	gameState: IGameState = {
-		isGameOver: false,
-		player: {
-			spawned: false,
-			position: null,
-			velocity: null,
-			isAtFloor: false
-		},
-		platformsQty: 0,
-		objectsQty: 0,
-	}
-
-	gameObjects: (GameObjectType & IGameObject)[] = [];
-	staticGameObjects: StaticPlatform[] = [];
-	player: Player | null = null;
-
-	column = 0;
-	assets: { [key: string]: HTMLImageElement } = {};
+	gameObjects: GameObject[] = [];
 
 	time = 0;
 	secondsPassed = 0;
 	oldTimeStamp = 0;
-	restitution = 0.1;
 
-	constructor(context: CanvasRenderingContext2D, width: number, height: number) {
+	constructor(context: CanvasRenderingContext2D, viewPortSize: IRectangleSize) {
 		this.context = context;
-		this.viewPortWidth = width;
-		this.viewPortHeight = height;
+		this.viewPortWidth = viewPortSize.width;
+		this.viewPortHeight = viewPortSize.height;
 	}
 
-	init() {
-		window.requestAnimationFrame(this.gameLoop);
-	}
+	start = () => window.requestAnimationFrame(this.gameLoop);
 
 	gameLoop = (timeStamp: number) => {
 		this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
 		this.time += this.secondsPassed;
 		this.oldTimeStamp = timeStamp;
 
-		this.updateGameState();
 		this.gameObjects.forEach(obj => obj.update(Math.min(this.secondsPassed, 0.1), this.vViewCoordinates));
 
-		this.detectEdgeCollisions();
-		this.detectStaticObjectCollision()
-		this.detectCollisions();
+		this.detectStaticObjectCollision();
 
 		this.context.clearRect(0, 0, this.viewPortWidth, this.viewPortHeight);
 
-
-		this.staticGameObjects.forEach(obj => obj.draw(this.viewPortHeight, this.vViewCoordinates));
-		this.gameObjects.forEach(obj => obj.draw(this.viewPortHeight, this.vViewCoordinates));
+		this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
 		this.drawFps(Math.round(1 / this.secondsPassed));
-		this.drawGameState();
 
 		window.requestAnimationFrame(this.gameLoop);
-	}
-
-	updateGameState = () => {
-		this.gameState = {
-			...this.gameState,
-			player: {
-				spawned: Boolean(this.player),
-				position: this.player?.vCoordinates || null,
-				velocity: this.player?.vVelocity || null,
-				isAtFloor: this.player?.isAtFloor || false,
-			},
-			platformsQty: this.staticGameObjects.length,
-			objectsQty: this.player ? this.gameObjects.length - 1 : this.gameObjects.length,
-		}
-	}
-
-	drawGameState = () => {
-		const { player, isGameOver, platformsQty, objectsQty } = this.gameState;
-
-		this.context.fillStyle = 'black';
-		this.context.font = '15px Arial';
-		this.context.textAlign = 'left';
-		this.context.textBaseline = 'top';
-
-		this.context.fillText(`Game is over: ${isGameOver}; Player is spawned ${player.spawned};`, 20, 10);
-		if (player?.position && player?.velocity) {
-			this.context.fillText(`Player
-				Position: ${Math.round(player.position.x)} ${Math.round(player.position.y)};
-				Velocity: ${Math.round(player.velocity.x)} ${Math.round(player.velocity.y)};
-				Atfloor: ${player.isAtFloor};
-			`, 20, 30);
-		}
-		this.context.fillText(`Platforms: ${platformsQty}; another objects: ${objectsQty};`, 20, 50);
 	}
 
 	drawFps = (timeStamp: number) => {
@@ -124,79 +50,55 @@ export default class GameDriver {
 		this.context.fillText(`fps: ${timeStamp}`, this.viewPortWidth - 20, 30);
 	}
 
-	detectEdgeCollisions = () => {
-		this.gameObjects.forEach((obj) => {
-			const { vCoordinates: vCoordinates, vVelocity } = obj;
-
-			// Check for left and right
-			// if (vCoordinates.x < obj.getLeft()) {
-			// 	obj.vVelocity.x = Math.abs(vVelocity.x) * this.restitution;
-			// 	obj.vCoordinates.x = obj.getLeft();
-			// 	obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
-			// } else if (vCoordinates.x > this.viewPortWidth - obj.getRight()) {
-			// 	obj.vVelocity.x = -Math.abs(vVelocity.x) * this.restitution;
-			// 	obj.vCoordinates.x = this.viewPortWidth - obj.getRight();
-			// 	obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
-			// }
-
-			// Check for bottom and top
-			if (vCoordinates.y < -obj.getBottom()) {
-				obj.vVelocity.y = Math.abs(vVelocity.y) * this.restitution;
-				obj.vCoordinates.y = -obj.getBottom();
-				obj.isAtFloor = true;
-				obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
-			} else if (vCoordinates.y > this.viewPortHeight - obj.getTop()) {
-				obj.vVelocity.y = -Math.abs(vVelocity.y) * this.restitution;
-				obj.vCoordinates.y = this.viewPortHeight - obj.getTop();
-			}
-		});
-	}
-
 	detectStaticObjectCollision = (): void => {
-		this.staticGameObjects.forEach((staticPlatform: StaticPlatform) => {
-			this.gameObjects.forEach((obj) => {
-				if (this.detectObjectIntersect(staticPlatform, obj)) {
-					if ((obj.vCoordinates.y + obj.getBottom() > staticPlatform.vCoordinates.y + staticPlatform.getBottom())
-						&& (obj.vCoordinates.y + obj.getTop() > staticPlatform.vCoordinates.y + staticPlatform.getTop())
-						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getLeft())
-						&& (obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())) {
-						obj.vCoordinates.y = staticPlatform.vCoordinates.y + staticPlatform.getTop() - obj.getBottom();
-						obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
-						obj.vVelocity.y = 1;
-						obj.isAtFloor = true;
-					}
+		const platforms = this.gameObjects.filter(obj => obj instanceof Platform) as Platform[];
+		const collidingObjects = this.gameObjects.filter((obj) => isInstanceOfColliding(obj)
+			&& isInstanceOfSupportPhisics(obj)) as (GameObject & IColliding & ISupportPhisics)[]
 
-					if ((obj.vCoordinates.y + obj.getTop() < staticPlatform.vCoordinates.y + staticPlatform.getTop())
-						&& (obj.vCoordinates.y + obj.getBottom() < staticPlatform.vCoordinates.y + staticPlatform.getBottom())
-						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getLeft())
-						&& (obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())) {
-						obj.vCoordinates.y = staticPlatform.vCoordinates.y - obj.getTop();
-						obj.vVelocity.y = -1;
-					}
+		platforms.forEach((platform: Platform) => {
+			collidingObjects.forEach((obj) => {
+					if (this.detectObjectIntersect(platform, obj)) {
+						if ((obj.vCoordinates.y + obj.getBottom() > platform.vCoordinates.y + platform.getBottom())
+							&& (obj.vCoordinates.y + obj.getTop() > platform.vCoordinates.y + platform.getTop())
+							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
+							&& (obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())) {
+							obj.vCoordinates.y = platform.vCoordinates.y + platform.getTop() - obj.getBottom();
+							obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
+							obj.vVelocity.y = 1;
+							obj.isAtFloor = true;
+						}
 
-					if ((obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getLeft())
-						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getLeft())
-						&& (obj.vCoordinates.y + obj.getTop() < staticPlatform.vCoordinates.y + staticPlatform.getTop())
-						&& (obj.vCoordinates.y + obj.getBottom() >= staticPlatform.vCoordinates.y + staticPlatform.getBottom())
-					) {
-						obj.vCoordinates.x = staticPlatform.vCoordinates.x - obj.getRight();
-						obj.vVelocity.x = -1;
-					}
+						if ((obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
+							&& (obj.vCoordinates.y + obj.getBottom() < platform.vCoordinates.y + platform.getBottom())
+							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
+							&& (obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())) {
+							obj.vCoordinates.y = platform.vCoordinates.y - obj.getTop();
+							obj.vVelocity.y = -1;
+						}
 
-					if ((obj.vCoordinates.x + obj.getLeft() < staticPlatform.vCoordinates.x + staticPlatform.getRight())
-						&& (obj.vCoordinates.x + obj.getRight() > staticPlatform.vCoordinates.x + staticPlatform.getRight())
-						&& (obj.vCoordinates.y + obj.getTop() < staticPlatform.vCoordinates.y + staticPlatform.getTop())
-						&& (obj.vCoordinates.y + obj.getBottom() >= staticPlatform.vCoordinates.y + staticPlatform.getBottom())
-					) {
-						obj.vCoordinates.x = staticPlatform.vCoordinates.x + staticPlatform.getRight();
-						obj.vVelocity.x = 1;
+						if ((obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getLeft())
+							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
+							&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
+							&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
+						) {
+							obj.vCoordinates.x = platform.vCoordinates.x - obj.getRight();
+							obj.vVelocity.x = -1;
+						}
+
+						if ((obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())
+							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getRight())
+							&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
+							&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
+						) {
+							obj.vCoordinates.x = platform.vCoordinates.x + platform.getRight();
+							obj.vVelocity.x = 1;
+						}
 					}
-				}
-			});
+				});
 		})
 	}
 
-	detectObjectIntersect = (o1: GameObjectType, o2: GameObjectType): boolean => {
+	detectObjectIntersect = (o1: GameObject, o2: GameObject): boolean => {
 		if (isInstanceOfRound(o1)) {
 			if (isInstanceOfRound(o2)) {
 				return detectCircleIntersect(o1 as RoundType, o2 as RoundType)
@@ -218,76 +120,7 @@ export default class GameDriver {
 		return false;
 	}
 
-	detectCollisions = () => {
-		let obj2;
-
-		// Reset collision state of all objects
-		this.gameObjects.forEach((obj) => obj.isColliding = false);
-		this.gameObjects.forEach((obj1, i) => {
-			for (let j = i + 1; j < this.gameObjects.length; j++) {
-				obj2 = this.gameObjects[j];
-
-				// Compare object1 with object2
-				if (this.detectObjectIntersect(obj1, obj2)) {
-					obj1.isColliding = true;
-					obj2.isColliding = true;
-
-					const vCollision = obj2.getCenter().getDifference(obj1.getCenter()); // Get collision vector
-					const distance = obj1.getCenter().getDistance(obj2.getCenter()); // Get distance between 
-					const vCollisionNorm = vCollision.divByNumber(distance); // Get normalized collision vector
-					const vRelativeVelocity = obj1.vVelocity.getDifference(obj2.vVelocity); // Get relative velocity vector
-					const speed = vRelativeVelocity.x * vCollisionNorm.x + vRelativeVelocity.y * vCollisionNorm.y;
-					if (speed < 0) {
-						break;
-					}
-
-					const impulse = (2 * speed) / (obj1.mass + obj2.mass);
-					obj1.vVelocity.x -= impulse * obj2.mass * vCollisionNorm.x;
-					obj1.vVelocity.y -= impulse * obj2.mass * vCollisionNorm.y;
-					obj2.vVelocity.x += impulse * obj1.mass * vCollisionNorm.x;
-					obj2.vVelocity.y += impulse * obj1.mass * vCollisionNorm.y;
-				}
-			}
-		});
-	}
-
-	loadAssets = async (paths: string[]) => {	
-		const assets = await Promise.all(paths.map((path: string) => this.loadAsset(path)));
-		paths.map((path, index) => this.assets[path] = assets[index]);
-	}
-
-	loadAsset = (path: string) => new Promise<HTMLImageElement>((resolve) => {
-		const image = new Image();
-		image.src = `src/lib/images/${path}.png`;
-		image.onload = () => resolve(image);
-	})
-
-	loadMap = () => MapJson.platforms.map(({ position, size }) => this.addPlatform(position, size));
-	
-
-	addPlatform = (position?: { x: number, y: number }, size?: { width: number, height: number }): StaticPlatform => {
-		const textures = {
-			head: this.assets['platforms/base/head'],
-			body: this.assets['platforms/base/body']
-		};
-
-		const platform = new StaticPlatform(this.context,
-			position ? new Vector2D(position.x, position.y) : new Vector2D(),
-			size ? size : { width: 0, height: 0 }, textures
-		);
-
-		this.staticGameObjects.push(platform);
-		return platform;
-	};
-
-	worldReset = () => { this.gameObjects = []; this.player = null; this.vViewCoordinates = new Vector2D() };
-	addCircle = () => this.gameObjects.push(new Circle(this.context, new Vector2D(250, 200), new Vector2D(0, 20)));
-	addRect = () => this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 200), new Vector2D(-50, 20)));
-
-	spawnPlayer = () => {
-		if (this.assets['characters/player']) {
-			this.player = new Player(this.context, new Vector2D(250, 250), this.assets['characters/player']);
-			this.gameObjects.push(this.player);
-		}
-	}
+	spawnObject = (object: GameObject) => this.gameObjects.push(object);
+	despawnObject = (object: GameObject) => this.gameObjects = this.gameObjects.filter(({ id }) => object.id !== id);
+	worldReset = () => this.vViewCoordinates = new Vector2D();
 }

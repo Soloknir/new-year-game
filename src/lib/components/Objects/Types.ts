@@ -1,22 +1,15 @@
 import type Circle from "./Circle";
-import type Player from "./Player";
-import type Rectangle from "./Rectangle";
-import type StaticPlatform from "./StaticPlatform";
+import type Player from "./Characters/Player";
+import type Platform from "./Platform";
+import type Santa from "./Characters/Santa";
 
-type RectangularType = Player | Rectangle | StaticPlatform;
+type RectangularType = Player | Santa | Platform;
 type RoundType = Circle;
 type GameObjectType = RectangularType | RoundType;
 
-const isInstanceOfRectangular = (obj: GameObjectType) => 'width' in obj && 'height' in obj;
-const isInstanceOfRound = (obj: GameObjectType) => 'radius' in obj;
 
 export type {
 	RectangularType,
 	RoundType,
 	GameObjectType
-}
-
-export {
-	isInstanceOfRectangular,
-	isInstanceOfRound
 }

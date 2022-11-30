@@ -1,11 +1,8 @@
 import type Circle from "../Objects/Circle";
-import type Rectangle from "../Objects/Rectangle";
-import type Player from "../Objects/Player";
 import type { Vector2D } from "../Vector";
-import type StaticPlatform from "../Objects/StaticPlatform";
-import type { RoundType } from "../Objects/Types";
+import type { RectangularType, RoundType } from "../Objects/Types";
 
-const detectRectIntersect = (r1: Rectangle | Player | StaticPlatform, r2: Rectangle | Player | StaticPlatform): boolean => {
+const detectRectIntersect = (r1: RectangularType, r2: RectangularType): boolean => {
 	return !(r2.vCoordinates.x > r1.width + r1.vCoordinates.x
 		|| r1.vCoordinates.x > r2.width + r2.vCoordinates.x
 		|| r2.vCoordinates.y > r1.height + r1.vCoordinates.y
@@ -13,7 +10,7 @@ const detectRectIntersect = (r1: Rectangle | Player | StaticPlatform, r2: Rectan
 	);
 }
 
-const detectRectCircleIntersect = (rect: Rectangle | Player | StaticPlatform, circle: Circle): boolean => {
+const detectRectCircleIntersect = (rect: RectangularType, circle: Circle): boolean => {
 	const vTestCoordinates: Vector2D = circle.vCoordinates.getCopy();
 	const { width, height } = rect;
 

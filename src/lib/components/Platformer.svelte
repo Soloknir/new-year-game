@@ -1,32 +1,25 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import GameDriver from './GameDriver';
-	import type StaticPlatform from './Objects/StaticPlatform';
+	import { Game } from './Game';
+	import type Platform from './Objects/StaticPlatform';
 	
 
+	let game: Game;
 	let downloadAnchor: HTMLAnchorElement;
-	let gameDriver: GameDriver;
 	let canvas: HTMLCanvasElement;
-	let platforms: StaticPlatform[] = [];
+	let platforms: Platform[] = [];
 
 	function handleWorldReset() {
-		gameDriver.worldReset();
+		game.worldReset();
 	}
 
-	function handleAddCircle() {
-		gameDriver.addCircle();
-	}
-
-	function handleAddRect() {
-		gameDriver.addRect();
-	}
 
 	function handleSpawnPlayer() {
-		gameDriver.spawnPlayer();
+		game.spawnPlayer();
 	}
 
-	function handleAddPlatform() {
-		platforms = [ ...platforms, gameDriver.addPlatform()];
+	async function handleAddPlatform() {
+		platforms = [ ...platforms, await game.spawnPlatform('base', { x: 0, y: 0 }, { width: 0, height: 0 })];
 	}
 
 	function handleDownloadMap() {
@@ -49,16 +42,11 @@
 
 		if (context) {
 			const rect = canvas.getBoundingClientRect();
-			gameDriver = new GameDriver(context, rect.width, rect.height);
+			
+			game = new Game(context,{ width: rect.width, height: rect.height});
 
-			await gameDriver.loadAssets([
-				'characters/player',
-				'platforms/base/head',
-				'platforms/base/body',
-			]);
-			gameDriver.spawnPlayer();
-			platforms = [...gameDriver.loadMap()];
-			gameDriver.init();
+			platforms = await game.loadMap();
+			game.gameStart();
 
 			window.addEventListener('keydown', handleKeyDown);
 			window.addEventListener('keyup', handleKeyUp);
@@ -66,21 +54,21 @@
 	});
 
 	function handleKeyDown(event: KeyboardEvent) {
-		if (gameDriver && gameDriver.player) {
+		if (game && game.player) {
 			switch(event.code) {
-				case 'KeyW': gameDriver.player.startJumping(); break;
-				case 'KeyD': gameDriver.player.startMoveRight(); break;
-				case 'KeyA': gameDriver.player.startMoveLeft(); break;
+				case 'KeyW': game.player.startJumping(); break;
+				case 'KeyD': game.player.startMoveRight(); break;
+				case 'KeyA': game.player.startMoveLeft(); break;
 			}
 		}
 	}
 
 	function handleKeyUp(event: KeyboardEvent) {
-		if (gameDriver && gameDriver.player) {
+		if (game && game.player) {
 			switch(event.code) {
-				case 'KeyW': gameDriver.player.stopJumping(); break;
-				case 'KeyD': gameDriver.player.stopMoveRight(); break;
-				case 'KeyA': gameDriver.player.stopMoveLeft(); break;
+				case 'KeyW': game.player.stopJumping(); break;
+				case 'KeyD': game.player.stopMoveRight(); break;
+				case 'KeyA': game.player.stopMoveLeft(); break;
 			}
 		}
 	}
@@ -91,10 +79,7 @@
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
 	<div class="dev toolbar">
-		<button on:click="{handleWorldReset}">World reset</button>
 		<button on:click="{handleSpawnPlayer}">Spawn player</button>
-		<button on:click="{handleAddCircle}">Add circle</button>
-		<button on:click="{handleAddRect}">Add rectangle</button>
 	</div>
 	<div>
 		<!-- svelte-ignore a11y-missing-attribute -->

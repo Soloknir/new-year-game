@@ -1,9 +1,11 @@
 import { Vector2D } from "../Vector";
 import { G } from "../Constants";
 import type { IGameObject } from "./Interfaces";
+import { v4 as uuid } from 'uuid';
+
 
 export default class Circle implements IGameObject {
-	context: CanvasRenderingContext2D;
+	id: string;
 	vCoordinates: Vector2D;
 	vVelocity: Vector2D;
 
@@ -14,24 +16,23 @@ export default class Circle implements IGameObject {
 	friction: number;
 	mass: number;
 
-	constructor(context: CanvasRenderingContext2D, vCoordinates: Vector2D, vVelocity = new Vector2D()) {
-		this.context = context;
+	constructor(vCoordinates: Vector2D, vVelocity = new Vector2D()) {
 		this.vCoordinates = vCoordinates;
 		this.vVelocity = vVelocity;
-
+		this.id = uuid();
 		this.radius = 15;
 		this.friction = 0.005;
 		this.mass = 30;
 	}
 
-	draw = (viewPortHeight: number): void => {
+	draw = (context: CanvasRenderingContext2D, viewPortHeight: number): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
 
 		// Draw a simple circle
-		this.context.beginPath();
-		this.context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
-		this.context.arc(viewCoords.x, viewCoords.y, this.radius, 0, 2 * Math.PI);
-		this.context.fill();
+		context.beginPath();
+		context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
+		context.arc(viewCoords.x, viewCoords.y, this.radius, 0, 2 * Math.PI);
+		context.fill();
 	}
 
 	update = (timePassed: number): void => {

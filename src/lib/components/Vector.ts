@@ -6,6 +6,7 @@ export class Vector2D {
 		this.x = x;
 		this.y = y;
 	}
+
 	
 	getCopy = () => new Vector2D(this.x, this.y);
 	getCoordsObject = () => ({ x: this.x, y: this.y });

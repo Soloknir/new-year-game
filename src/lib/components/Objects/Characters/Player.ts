@@ -1,33 +1,30 @@
-import { Vector2D } from "../Vector";
-import { G } from "../Constants";
-import type { IGameObject } from "./Interfaces";
+import { Vector2D } from "../../Vector";
+import { G } from "../../Constants";
+import { GameObject, type IRectangular, type ISupportPhisics } from "../GameObject";
 
-export default class Player implements IGameObject {
-	context: CanvasRenderingContext2D;
-	vCoordinates: Vector2D;
-	vVelocity: Vector2D;
-	sprite: HTMLImageElement;
+export default class Player extends GameObject implements IRectangular, ISupportPhisics {
+	// Implements IRectangular interface
 	width: number;
 	height: number;
+
+	// Implements ISupportPhisics interface
 	friction: number;
 	mass: number;
-	horizontalMoveSpeed: number;
-	jumpImpulse: number;
+	isColliding = false;
+	isAtFloor = false;
 
+	sprite: HTMLImageElement;
 	time = 0;
 	column = 0;
 	row = 2
-
-	isColliding = false;
-	isAtFloor = false;
+	horizontalMoveSpeed: number;
+	jumpImpulse: number;
 	isJumping = false;
 	isMoveRight = false;
 	isMoveLeft = false;
 
-	constructor(context: CanvasRenderingContext2D, coords: Vector2D, sprite: HTMLImageElement, velocity = new Vector2D()) {
-		this.context = context
-		this.vCoordinates = coords
-		this.vVelocity = velocity
+	constructor(vCoordinates: Vector2D, sprite: HTMLImageElement) {
+		super(vCoordinates, new Vector2D());
 		this.sprite = sprite;
 
 		this.width = 50;
@@ -38,8 +35,7 @@ export default class Player implements IGameObject {
 		this.jumpImpulse = 500;
 	}
 
-
-	draw = (viewPortHeight: number, vViewCoordinates: Vector2D): void => {
+	draw = (context: CanvasRenderingContext2D, viewPortHeight: number, vViewCoordinates: Vector2D): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
 
 		// this.context.fillStyle = 'grey';
@@ -58,7 +54,7 @@ export default class Player implements IGameObject {
 
 		const frameWidth = 64;
 		const frameHeight = 64;
-		this.context.drawImage(
+		context.drawImage(
 			this.sprite,
 			this.column * frameWidth + frameWidth / 4,
 			this.row * frameHeight,
@@ -91,13 +87,6 @@ export default class Player implements IGameObject {
 		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
 		vViewCoordinates.x = this.vCoordinates.x - 250;
-	}
-
-	getCenter = () => {
-		const vMid = this.vCoordinates.getCopy();
-		vMid.x += this.width / 2;
-		vMid.y += this.height / 2;
-		return vMid;
 	}
 
 	getTop = () => this.height;

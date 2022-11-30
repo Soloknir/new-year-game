@@ -1,9 +1,11 @@
 import { Vector2D } from "../Vector";
 import { G } from "../Constants";
 import type { IGameObject } from "./Interfaces";
+import { v4 as uuid } from 'uuid';
+
 
 export default class Rectangle implements IGameObject {
-	context: CanvasRenderingContext2D;
+	id: string;
 	vCoordinates: Vector2D;
 	vVelocity: Vector2D;
 	isColliding = false;
@@ -14,11 +16,10 @@ export default class Rectangle implements IGameObject {
 	friction: number;
 	mass: number;
 	
-	constructor(context: CanvasRenderingContext2D, vCoordinates: Vector2D, vVelocity = new Vector2D()) {
-		this.context = context
+	constructor(vCoordinates: Vector2D, vVelocity = new Vector2D()) {
 		this.vCoordinates = vCoordinates;
 		this.vVelocity = vVelocity;
-		
+		this.id = uuid();
 		// Set default width and height
 		this.width = 50;
 		this.height = 50;
@@ -27,10 +28,10 @@ export default class Rectangle implements IGameObject {
 	}
 
 
-	draw = (viewPortHeight: number): void => {
+	draw = (context: CanvasRenderingContext2D, viewPortHeight: number): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
-		this.context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
-		this.context.fillRect(viewCoords.x, viewCoords.y - this.height, this.width, this.height);
+		context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
+		context.fillRect(viewCoords.x, viewCoords.y - this.height, this.width, this.height);
 	}
 
 	update = (timePassed: number): void => {
