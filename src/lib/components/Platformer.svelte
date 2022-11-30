@@ -1,11 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import GameDriver from './GameDriver';
+	import type StaticPlatform from './Objects/StaticPlatform';
+	
+
+	let downloadAnchor: HTMLAnchorElement;
 	let gameDriver: GameDriver;
 	let canvas: HTMLCanvasElement;
+	let platforms: StaticPlatform[] = [];
 
 	function handleWorldReset() {
-		gameDriver.clearWorldState();
+		gameDriver.worldReset();
 	}
 
 	function handleAddCircle() {
@@ -20,12 +25,40 @@
 		gameDriver.spawnPlayer();
 	}
 
-	onMount(() => {
+	function handleAddPlatform() {
+		platforms = [ ...platforms, gameDriver.addPlatform()];
+	}
+
+	function handleDownloadMap() {
+		const payload = {
+			platforms: platforms.map((platform) => ({
+				name: 'base',
+				position: platform.vCoordinates.getCoordsObject(),
+				size: { width: platform.width, height: platform.height }
+			}))
+		}
+
+		var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload));
+		downloadAnchor.setAttribute("href", dataStr);
+		downloadAnchor.setAttribute("download", "map.json");
+		downloadAnchor.click();	
+	}
+
+	onMount(async () => {
 		const context = canvas.getContext('2d');
 
 		if (context) {
 			const rect = canvas.getBoundingClientRect();
 			gameDriver = new GameDriver(context, rect.width, rect.height);
+
+			await gameDriver.loadAssets([
+				'characters/player',
+				'platforms/base/head',
+				'platforms/base/body',
+			]);
+			gameDriver.spawnPlayer();
+			platforms = [...gameDriver.loadMap()];
+			gameDriver.init();
 
 			window.addEventListener('keydown', handleKeyDown);
 			window.addEventListener('keyup', handleKeyUp);
@@ -62,6 +95,21 @@
 		<button on:click="{handleSpawnPlayer}">Spawn player</button>
 		<button on:click="{handleAddCircle}">Add circle</button>
 		<button on:click="{handleAddRect}">Add rectangle</button>
+	</div>
+	<div>
+		<!-- svelte-ignore a11y-missing-attribute -->
+		<!-- svelte-ignore a11y-missing-content -->
+		<a bind:this="{downloadAnchor}" style:display="none" />
+		{#each platforms as platform}
+			<div>
+				<input type="number" bind:value="{ platform.vCoordinates.x }">
+				<input type="number" bind:value="{ platform.vCoordinates.y }">
+				<input type="number" bind:value="{ platform.width }">
+				<input type="number" bind:value="{ platform.height }">
+			</div>
+		{/each}
+		<button on:click="{handleAddPlatform}">Add platform</button>
+		<button on:click="{handleDownloadMap}">Download map</button>
 	</div>
 </div>
 

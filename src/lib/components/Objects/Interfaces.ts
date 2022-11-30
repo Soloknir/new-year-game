@@ -9,7 +9,7 @@ interface IStaticGameObject {
 	context: CanvasRenderingContext2D;
 	vCoordinates: Vector2D;
 
-	draw: (_: number) => void;
+	draw: (_: number, _v: Vector2D) => void;
 	getTop: () => number;
 	getBottom: () => number;
 	getLeft: () => number;
@@ -23,7 +23,7 @@ interface IGameObject extends IStaticGameObject {
 	isColliding: boolean;
 	isAtFloor: boolean;
 
-	update: (_: number) => void;
+	update: (_: number, _v: Vector2D) => void;
 	getCenter: () => Vector2D;
 }
 

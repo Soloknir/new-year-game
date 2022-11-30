@@ -8,6 +8,7 @@ export class Vector2D {
 	}
 	
 	getCopy = () => new Vector2D(this.x, this.y);
+	getCoordsObject = () => ({ x: this.x, y: this.y });
 
 	divByNumber = (divider: number): Vector2D => new Vector2D(this.x / divider, this.y / divider);
 

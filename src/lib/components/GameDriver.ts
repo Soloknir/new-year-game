@@ -22,9 +22,9 @@ interface IGameState {
 
 export default class GameDriver {
 	context: CanvasRenderingContext2D;
+	vViewCoordinates = new Vector2D();
 	viewPortWidth: number;
 	viewPortHeight: number;
-	vViewCoordinates = new Vector2D();
 
 	gameState: IGameState = {
 		isGameOver: false,
@@ -54,20 +54,9 @@ export default class GameDriver {
 		this.context = context;
 		this.viewPortWidth = width;
 		this.viewPortHeight = height;
-
-		this.init();
 	}
 
-	async init() {
-		await this.loadAssets([
-			'characters/player',
-			'platforms/base/head',
-			'platforms/base/body',
-		]);
-
-		this.spawnPlayer();
-		this.loadMap();
-
+	init() {
 		window.requestAnimationFrame(this.gameLoop);
 	}
 
@@ -77,7 +66,7 @@ export default class GameDriver {
 		this.oldTimeStamp = timeStamp;
 
 		this.updateGameState();
-		this.gameObjects.forEach(obj => obj.update(Math.min(this.secondsPassed, 0.1)));
+		this.gameObjects.forEach(obj => obj.update(Math.min(this.secondsPassed, 0.1), this.vViewCoordinates));
 
 		this.detectEdgeCollisions();
 		this.detectStaticObjectCollision()
@@ -85,11 +74,11 @@ export default class GameDriver {
 
 		this.context.clearRect(0, 0, this.viewPortWidth, this.viewPortHeight);
 
+
+		this.staticGameObjects.forEach(obj => obj.draw(this.viewPortHeight, this.vViewCoordinates));
+		this.gameObjects.forEach(obj => obj.draw(this.viewPortHeight, this.vViewCoordinates));
 		this.drawFps(Math.round(1 / this.secondsPassed));
 		this.drawGameState();
-
-		this.staticGameObjects.forEach(obj => obj.draw(this.viewPortHeight));
-		this.gameObjects.forEach(obj => obj.draw(this.viewPortHeight));
 
 		window.requestAnimationFrame(this.gameLoop);
 	}
@@ -140,15 +129,15 @@ export default class GameDriver {
 			const { vCoordinates: vCoordinates, vVelocity } = obj;
 
 			// Check for left and right
-			if (vCoordinates.x < obj.getLeft()) {
-				obj.vVelocity.x = Math.abs(vVelocity.x) * this.restitution;
-				obj.vCoordinates.x = obj.getLeft();
-				obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
-			} else if (vCoordinates.x > this.viewPortWidth - obj.getRight()) {
-				obj.vVelocity.x = -Math.abs(vVelocity.x) * this.restitution;
-				obj.vCoordinates.x = this.viewPortWidth - obj.getRight();
-				obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
-			}
+			// if (vCoordinates.x < obj.getLeft()) {
+			// 	obj.vVelocity.x = Math.abs(vVelocity.x) * this.restitution;
+			// 	obj.vCoordinates.x = obj.getLeft();
+			// 	obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
+			// } else if (vCoordinates.x > this.viewPortWidth - obj.getRight()) {
+			// 	obj.vVelocity.x = -Math.abs(vVelocity.x) * this.restitution;
+			// 	obj.vCoordinates.x = this.viewPortWidth - obj.getRight();
+			// 	obj.vVelocity.y = obj.vVelocity.y * (1 - obj.friction);
+			// }
 
 			// Check for bottom and top
 			if (vCoordinates.y < -obj.getBottom()) {
@@ -273,17 +262,25 @@ export default class GameDriver {
 		image.onload = () => resolve(image);
 	})
 
-	loadMap = () => {
+	loadMap = () => MapJson.platforms.map(({ position, size }) => this.addPlatform(position, size));
+	
+
+	addPlatform = (position?: { x: number, y: number }, size?: { width: number, height: number }): StaticPlatform => {
 		const textures = {
 			head: this.assets['platforms/base/head'],
 			body: this.assets['platforms/base/body']
 		};
 
-		MapJson.platforms.map(({ position, size }) => this.staticGameObjects
-			.push(new StaticPlatform(this.context, new Vector2D(position.x, position.y), size, textures)));
-	}
+		const platform = new StaticPlatform(this.context,
+			position ? new Vector2D(position.x, position.y) : new Vector2D(),
+			size ? size : { width: 0, height: 0 }, textures
+		);
 
-	clearWorldState = () => { this.gameObjects = []; this.player = null };
+		this.staticGameObjects.push(platform);
+		return platform;
+	};
+
+	worldReset = () => { this.gameObjects = []; this.player = null; this.vViewCoordinates = new Vector2D() };
 	addCircle = () => this.gameObjects.push(new Circle(this.context, new Vector2D(250, 200), new Vector2D(0, 20)));
 	addRect = () => this.gameObjects.push(new Rectangle(this.context, new Vector2D(250, 200), new Vector2D(-50, 20)));
 

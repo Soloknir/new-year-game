@@ -16,7 +16,7 @@ export default class StaticPlatform implements IStaticGameObject {
 		this.textures = textures;
 	}
 
-	draw = (viewPortHeight: number): void => {
+	draw = (viewPortHeight: number, vViewCoordinates: Vector2D): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
 		let height = this.height;
 		let row = 0;
@@ -30,7 +30,7 @@ export default class StaticPlatform implements IStaticGameObject {
 					0, 0,
 					Math.min(128, width),
 					Math.min(128, height),
-					128 * column + viewCoords.x,
+					128 * column + viewCoords.x - vViewCoordinates.x,
 					128 * row + viewCoords.y - this.height,
 					Math.min(128, width),
 					Math.min(128, height)

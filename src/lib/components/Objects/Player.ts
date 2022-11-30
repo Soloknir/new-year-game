@@ -39,7 +39,7 @@ export default class Player implements IGameObject {
 	}
 
 
-	draw = (viewPortHeight: number): void => {
+	draw = (viewPortHeight: number, vViewCoordinates: Vector2D): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
 
 		// this.context.fillStyle = 'grey';
@@ -64,14 +64,14 @@ export default class Player implements IGameObject {
 			this.row * frameHeight,
 			frameWidth - frameWidth / 4,
 			frameHeight - 2,
-			viewCoords.x,
+			viewCoords.x - vViewCoordinates.x,
 			viewCoords.y - this.height,
 			this.width,
 			this.height
 		);
 	}
 
-	update = (timePassed: number): void => {
+	update = (timePassed: number, vViewCoordinates: Vector2D): void => {
 		this.time += timePassed;
 		this.vVelocity.y -= (G * this.mass) * timePassed;
 		this.vVelocity.x = 0;
@@ -90,6 +90,7 @@ export default class Player implements IGameObject {
 
 		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
+		vViewCoordinates.x = this.vCoordinates.x - 250;
 	}
 
 	getCenter = () => {
