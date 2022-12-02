@@ -1,6 +1,7 @@
 import { detectObjectIntersect } from "./Helpers/Intersections";
 import { isInstanceOfColliding, isInstanceOfSupportPhisics, type GameObject, type IColliding, type ISupportPhisics } from "./Objects/GameObject";
 import type { IRectangleSize } from "./Objects/Interfaces";
+import MovingPlatform from "./Objects/MovingPlatform";
 import Platform from "./Objects/Platform";
 import { Vector2D } from "./Vector";
 
@@ -54,50 +55,50 @@ export default class GameDriver {
 	}
 
 	detectPlatformCollision = (): void => {
-		const platforms = this.gameObjects.filter(obj => obj instanceof Platform) as Platform[];
+		const platforms = this.gameObjects.filter(obj => obj instanceof Platform || obj instanceof MovingPlatform) as (Platform | MovingPlatform)[];
 		const collidingObjects = this.gameObjects.filter((obj) => isInstanceOfColliding(obj)
-			&& isInstanceOfSupportPhisics(obj)) as (GameObject & IColliding & ISupportPhisics)[]
+			&& isInstanceOfSupportPhisics(obj)) as (GameObject & IColliding & ISupportPhisics)[];
 
 		platforms.forEach((platform: Platform) => {
 			collidingObjects.forEach((obj) => {
-					if (detectObjectIntersect(platform, obj)) {
-						if ((obj.vCoordinates.y + obj.getBottom() > platform.vCoordinates.y + platform.getBottom())
-							&& (obj.vCoordinates.y + obj.getTop() > platform.vCoordinates.y + platform.getTop())
-							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
-							&& (obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())) {
-							obj.vCoordinates.y = platform.vCoordinates.y + platform.getTop() - obj.getBottom();
-							obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
-							obj.vVelocity.y = 1;
-							obj.isAtFloor = true;
-						}
-
-						if ((obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
-							&& (obj.vCoordinates.y + obj.getBottom() < platform.vCoordinates.y + platform.getBottom())
-							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
-							&& (obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())) {
-							obj.vCoordinates.y = platform.vCoordinates.y - obj.getTop();
-							obj.vVelocity.y = -1;
-						}
-
-						if ((obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getLeft())
-							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
-							&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
-							&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
-						) {
-							obj.vCoordinates.x = platform.vCoordinates.x - obj.getRight();
-							obj.vVelocity.x = -1;
-						}
-
-						if ((obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())
-							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getRight())
-							&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
-							&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
-						) {
-							obj.vCoordinates.x = platform.vCoordinates.x + platform.getRight();
-							obj.vVelocity.x = 1;
-						}
+				if (detectObjectIntersect(platform, obj)) {
+					if ((obj.vCoordinates.y + obj.getBottom() > platform.vCoordinates.y + platform.getBottom())
+						&& (obj.vCoordinates.y + obj.getTop() > platform.vCoordinates.y + platform.getTop())
+						&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
+						&& (obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())) {
+						obj.vCoordinates.y = platform.vCoordinates.y + platform.getTop() - obj.getBottom();
+						obj.vVelocity.x = obj.vVelocity.x * (1 - obj.friction);
+						obj.vVelocity.y = 1;
+						obj.platform = platform;
 					}
-				});
+
+					if ((obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
+						&& (obj.vCoordinates.y + obj.getBottom() < platform.vCoordinates.y + platform.getBottom())
+						&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
+						&& (obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())) {
+						obj.vCoordinates.y = platform.vCoordinates.y - obj.getTop();
+						obj.vVelocity.y = -1;
+					}
+
+					if ((obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getLeft())
+						&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
+						&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
+						&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
+					) {
+						obj.vCoordinates.x = platform.vCoordinates.x - obj.getRight();
+						obj.vVelocity.x = -1;
+					}
+
+					if ((obj.vCoordinates.x + obj.getLeft() < platform.vCoordinates.x + platform.getRight())
+						&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getRight())
+						&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
+						&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
+					) {
+						obj.vCoordinates.x = platform.vCoordinates.x + platform.getRight();
+						obj.vVelocity.x = 1;
+					}
+				}
+			});
 		})
 	}
 

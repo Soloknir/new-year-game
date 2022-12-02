@@ -6,6 +6,7 @@ import Platform from './Objects/Platform';
 import { Vector2D } from './Vector';
 import Santa from './Objects/Characters/Santa';
 import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
+import MovingPlatform from './Objects/MovingPlatform';
 
 class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
@@ -61,7 +62,11 @@ export class Game {
 	loadMap = () => {
 		return Promise.all([
 			Promise.all(MapJson.characters.map(({ position }) => this.spawnSanta(position))),
-			Promise.all(MapJson.platforms.map(({ id, position, size }) => this.spawnPlatform(id, position, size))),
+			Promise.all(MapJson.platforms.map(({ id, type, position, target, duration, size }: any) => {
+				return (type === 'static')
+					? this.spawnPlatform(id, position, size)
+					: this.spawnMovingPlatform(id, position, target, duration, size);
+			})),
 		])
 	};
 
@@ -100,6 +105,24 @@ export class Game {
 		return platform;
 	};
 
+	spawnMovingPlatform = async (id: string, coordinates?: ICoordinates, target?: ICoordinates, duration?: number, size?: IRectangleSize) => {
+		const [head, body]: HTMLImageElement[] = await Promise.all([
+			this.assetManager.get(`platforms/${id}/head`),
+			this.assetManager.get(`platforms/${id}/body`)
+		]);
+
+		const platform = new MovingPlatform(
+			coordinates ? new Vector2D(coordinates.x, coordinates.y) : new Vector2D(),
+			target ? new Vector2D(target.x, target.y) : new Vector2D(),
+			duration || 1,
+			size ? size : { width: 0, height: 0 },
+			{ head, body }
+		);
+
+		this.gameDriver.spawnObject(platform);
+		return platform;
+	};
+
 	addGameOverEventListener = () => {
 		if (this.gameState.player) {
 			this.gameState.player
@@ -109,8 +132,7 @@ export class Game {
 
 	addSantaMeetingEventListener = () => {
 		if (this.gameState.player && this.gameState.santa) {
-			this.gameState.player
-				.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startMiniGame));
+			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startMiniGame));
 		}
 	};
 
@@ -118,7 +140,7 @@ export class Game {
 		if (this.gameState.santa && this.gameState.player) {
 			this.playerRespawn =this.gameState.santa.vCoordinates.getCopy();
 			this.gameState.santa.vCoordinates = new Vector2D(2400, 350);
-			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.winGameCallback))
+			// this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.winGameCallback))
 			
 			this.startFlipGameCallback();
 		}

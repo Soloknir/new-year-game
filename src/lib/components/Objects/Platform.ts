@@ -2,7 +2,7 @@ import { Vector2D } from "../Vector";
 import type { IRectangleSize } from "./Interfaces";
 import { GameObject, type IRectangular } from "./GameObject";
 
-
+export interface IPlatformTexture { head: HTMLImageElement, body: HTMLImageElement }
 export default class Platform extends GameObject implements IRectangular {
 	// Implements IRectangular interface
 	width: number;
@@ -10,7 +10,7 @@ export default class Platform extends GameObject implements IRectangular {
 	
 	textures: { head: HTMLImageElement, body: HTMLImageElement };
 
-	constructor(vCoordinates: Vector2D, size: IRectangleSize, textures: { head: HTMLImageElement, body: HTMLImageElement }) {
+	constructor(vCoordinates: Vector2D, size: IRectangleSize, textures: IPlatformTexture) {
 		super(vCoordinates, new Vector2D());
 
 		this.width = size.width;
@@ -45,15 +45,6 @@ export default class Platform extends GameObject implements IRectangular {
 			height -= 128;
 			row++;
 		}
-	}
-	
-	update = () => null;
-
-	getCenter = () => {
-		const vMid = this.vCoordinates.getCopy();
-		vMid.x += this.width / 2;
-		vMid.y += this.height / 2;
-		return vMid;
 	}
 
 	getTop = () => this.height;

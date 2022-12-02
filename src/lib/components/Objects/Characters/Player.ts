@@ -10,7 +10,7 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 	// Implements ISupportPhisics interface
 	friction: number;
 	mass: number;
-	isAtFloor = false;
+	platform: GameObject | null = null;
 
 	// Implements IColliding interface
 	isColliding = false;
@@ -82,9 +82,12 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 		if (this.isMoveLeft) {
 			this.vVelocity.x -= this.horizontalMoveSpeed;
 		}
+		if (this.platform) {
+			this.vVelocity.x += this.platform.vVelocity.x ;
+		}
 
-		if (this.isJumping && this.isAtFloor) {
-			this.isAtFloor = false;
+		if (this.isJumping && this.platform) {
+			this.platform = null;
 			this.vVelocity.y = this.jumpImpulse;
 		}
 

@@ -1,3 +1,5 @@
+import type { ICoordinates } from "./Objects/Interfaces";
+
 export class Vector2D {
 	x: number;
 	y: number;
@@ -7,14 +9,17 @@ export class Vector2D {
 		this.y = y;
 	}
 
-	
 	getCopy = () => new Vector2D(this.x, this.y);
 	getCoordsObject = () => ({ x: this.x, y: this.y });
+	setByCoordsObject = ({ x, y }: ICoordinates) => { this.x = x; this.y = y };
+	ceil = () => {
+		this.x = Math.ceil(this.x);
+		this.y = Math.ceil(this.y);
+		return this;
+	}
 
 	divByNumber = (divider: number): Vector2D => new Vector2D(this.x / divider, this.y / divider);
-
 	getDifference = ({ x, y }: Vector2D) => new Vector2D(this.x - x, this.y - y);
-
 	getDistance = ({ x, y }: Vector2D): number => {
 		const dx = this.x - x;
 		const dy = this.y - y;
