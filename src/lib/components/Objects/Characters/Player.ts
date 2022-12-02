@@ -96,8 +96,8 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 	checkEventListeners = () => {
 		this.eventListeners.forEach(event => {
 			if (event.check(this)) {
-				event.callback();
 				event.once && this.removeEventListener(event.id);
+				event.callback();
 			}
 		})
 	}

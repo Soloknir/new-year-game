@@ -72,7 +72,7 @@ export class Game {
 			this.gameDriver.despawnObject(this.gameState.player);
 		}
 
-		this.gameState.player = new Player(this.playerRespawn, await this.assetManager.get('characters/player'));
+		this.gameState.player = new Player(this.playerRespawn.getCopy(), await this.assetManager.get('characters/player'));
 		this.gameState.player.eventListeners = eventListeners;
 		this.gameDriver.spawnObject(this.gameState.player);
 	};
@@ -103,22 +103,29 @@ export class Game {
 	addGameOverEventListener = () => {
 		if (this.gameState.player) {
 			this.gameState.player
-				.addEventListener(new GameEdgeEvent('less', 'y', 0, true, this.spawnPlayer));
+				.addEventListener(new GameEdgeEvent('less', 'y', 0, false, this.spawnPlayer));
 		}
 	};
 
 	addSantaMeetingEventListener = () => {
 		if (this.gameState.player && this.gameState.santa) {
 			this.gameState.player
-				.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startFlipGame));
+				.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startMiniGame));
 		}
 	};
 
-	startFlipGame = () => {
-		this.playerRespawn = this.gameState.santa ? this.gameState.santa.vCoordinates.getCopy() : this.playerRespawn
-		this.startFlipGameCallback();
+	startMiniGame = () => {
+		if (this.gameState.santa && this.gameState.player) {
+			this.playerRespawn =this.gameState.santa.vCoordinates.getCopy();
+			this.gameState.santa.vCoordinates = new Vector2D(2400, 350);
+			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.winGameCallback))
+			
+			this.startFlipGameCallback();
+		}
 	}
 
-	startFlipGameCallback = () => { console.log('startFlipGame'); };
+
+	winGameCallback = () => { console.log('win'); }
+	startFlipGameCallback = () => { return; };
 
 }

@@ -15,12 +15,6 @@
 		display: flex
 		flex-direction: column
 		min-height: 100vh
-	
-		main
-			display: flex
-			flex-direction: column
-			padding: 1rem
-			width: 100%
-			margin: 0 auto
-			box-sizing: border-box
+		background: linear-gradient(90deg, rgba(8,33,255,0.577468487394958) 0%, rgba(255,255,255,1) 100%)
+		padding: 1rem
 </style>

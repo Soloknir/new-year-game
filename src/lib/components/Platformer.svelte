@@ -13,6 +13,7 @@
 	let characters: GameObject[] = [];
 
 	let showFlip = false;
+	let winGame = false;
 
 	function handleSpawnPlayer() {
 		game.spawnPlayer();
@@ -55,19 +56,28 @@
 
 			[characters, platforms] = await game.loadMap();
 			game.gameStart();
-			game.startFlipGameCallback = () => showFlip = true;
+			game.startFlipGameCallback = () => {
+				showFlip = true;
+				if (game.gameState.player) {
+					game.gameState.player.stopJumping();
+					game.gameState.player.stopMoveRight();
+					game.gameState.player.stopMoveLeft();
+				}
+			};
+
+			game.winGameCallback = () => winGame = true;
 
 			window.addEventListener('keydown', handleKeyDown);
 			window.addEventListener('keyup', handleKeyUp);
 		}
 	});
 
-	function hanleFlipEnd() {
+	function hanleSkipFlip() {
 		showFlip = false;
 	}
 
 	function handleKeyDown(event: KeyboardEvent) {
-		if (game.gameState && game.gameState.player) {
+		if (game.gameState && game.gameState.player && !showFlip) {
 			switch(event.code) {
 				case 'KeyW': game.gameState.player.startJumping(); break;
 				case 'KeyD': game.gameState.player.startMoveRight(); break;
@@ -77,7 +87,7 @@
 	}
 
 	function handleKeyUp(event: KeyboardEvent) {
-		if (game.gameState && game.gameState.player) {
+		if (game.gameState && game.gameState.player && !showFlip) {
 			switch(event.code) {
 				case 'KeyW': game.gameState.player.stopJumping(); break;
 				case 'KeyD': game.gameState.player.stopMoveRight(); break;
@@ -88,18 +98,21 @@
 </script>
 
 <div class="container">
-	{#if showFlip}
-		<FlipMemoryGame on:done="{hanleFlipEnd}" />
-		<button on:click="{hanleFlipEnd}">End flip</button>
+	{#if winGame}
+		<h1>You are win!</h1>
 	{/if}
-	<canvas style:display="{ showFlip ? 'none' : 'block'}" bind:this={canvas} width="{1024}" height="{512}">
+	{#if showFlip}
+		<FlipMemoryGame on:done="{hanleSkipFlip}" />
+		<button on:click="{hanleSkipFlip}">Skip flip</button>
+	{/if}
+	<canvas style:display="{ showFlip || winGame ? 'none' : 'block'}" bind:this={canvas} width="{1024}" height="{512}">
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
-	<div style:display="{ showFlip ? 'none' : 'block'}" class="dev toolbar">
+	<div style:display="{ showFlip || winGame ? 'none' : 'block'}" class="dev toolbar">
 		<button on:click="{handleSpawnPlayer}">Spawn player</button>
 		<button on:click="{handleSpawnSanta}">Spawn santa</button>
 	</div>
-	<div style:display="{ showFlip ? 'none' : 'block'}" class="dev">
+	<div style:display="{ showFlip || winGame ? 'none' : 'block'}" class="dev">
 		<!-- svelte-ignore a11y-missing-attribute -->
 		<!-- svelte-ignore a11y-missing-content -->
 		<a bind:this="{downloadAnchor}" style:display="none" />
@@ -121,8 +134,8 @@
 			</div>
 		{/each}
 	</div>
-	<button style:display="{ showFlip ? 'none' : 'block'}" on:click="{handleAddPlatform}">Add platform</button>
-	<button style:display="{ showFlip ? 'none' : 'block'}" on:click="{handleDownloadMap}">Download map</button>
+	<button style:display="{ showFlip || winGame ? 'none' : 'block'}" on:click="{handleAddPlatform}">Add platform</button>
+	<button style:display="{ showFlip || winGame ? 'none' : 'block'}" on:click="{handleDownloadMap}">Download map</button>
 </div>
 
 <style lang="sass">
