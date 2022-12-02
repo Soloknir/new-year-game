@@ -99,7 +99,7 @@
 
 <div class="container">
 	{#if winGame}
-		<h1>You are win!</h1>
+		<h1>You win!</h1>
 	{/if}
 	{#if showFlip}
 		<FlipMemoryGame on:done="{hanleSkipFlip}" />

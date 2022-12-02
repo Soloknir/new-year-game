@@ -120,7 +120,6 @@ export class GameObject {
 		const index = this.eventListeners.findIndex(({ id }) => id === eventId);
 		index > -1 && this.eventListeners.splice(index, 1)
 	};
-
 }
 
 export const isInstanceOfRectangular = (obj: GameObject) => 'width' in obj && 'height' in obj;
