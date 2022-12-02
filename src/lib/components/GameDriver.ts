@@ -1,8 +1,7 @@
-import { detectCircleIntersect, detectRectCircleIntersect, detectRectIntersect } from "./Helpers/Intersections";
-import { isInstanceOfColliding, isInstanceOfRectangular, isInstanceOfRound, isInstanceOfSupportPhisics, type GameObject, type IColliding, type ISupportPhisics } from "./Objects/GameObject";
+import { detectObjectIntersect } from "./Helpers/Intersections";
+import { isInstanceOfColliding, isInstanceOfSupportPhisics, type GameObject, type IColliding, type ISupportPhisics } from "./Objects/GameObject";
 import type { IRectangleSize } from "./Objects/Interfaces";
 import Platform from "./Objects/Platform";
-import type { RectangularType, RoundType } from "./Objects/Types";
 import { Vector2D } from "./Vector";
 
 export default class GameDriver {
@@ -32,11 +31,15 @@ export default class GameDriver {
 
 		this.gameObjects.forEach(obj => obj.update(Math.min(this.secondsPassed, 0.1), this.vViewCoordinates));
 
-		this.detectStaticObjectCollision();
+		this.detectPlatformCollision();
 
 		this.context.clearRect(0, 0, this.viewPortWidth, this.viewPortHeight);
 
 		this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
+
+		// this.context.fillStyle = 'rgba(0,0,0,0.7)';
+		// this.context.fillRect(0, 0, this.viewPortWidth, this.viewPortHeight);
+	
 		this.drawFps(Math.round(1 / this.secondsPassed));
 
 		window.requestAnimationFrame(this.gameLoop);
@@ -50,14 +53,14 @@ export default class GameDriver {
 		this.context.fillText(`fps: ${timeStamp}`, this.viewPortWidth - 20, 30);
 	}
 
-	detectStaticObjectCollision = (): void => {
+	detectPlatformCollision = (): void => {
 		const platforms = this.gameObjects.filter(obj => obj instanceof Platform) as Platform[];
 		const collidingObjects = this.gameObjects.filter((obj) => isInstanceOfColliding(obj)
 			&& isInstanceOfSupportPhisics(obj)) as (GameObject & IColliding & ISupportPhisics)[]
 
 		platforms.forEach((platform: Platform) => {
 			collidingObjects.forEach((obj) => {
-					if (this.detectObjectIntersect(platform, obj)) {
+					if (detectObjectIntersect(platform, obj)) {
 						if ((obj.vCoordinates.y + obj.getBottom() > platform.vCoordinates.y + platform.getBottom())
 							&& (obj.vCoordinates.y + obj.getTop() > platform.vCoordinates.y + platform.getTop())
 							&& (obj.vCoordinates.x + obj.getRight() > platform.vCoordinates.x + platform.getLeft())
@@ -98,27 +101,6 @@ export default class GameDriver {
 		})
 	}
 
-	detectObjectIntersect = (o1: GameObject, o2: GameObject): boolean => {
-		if (isInstanceOfRound(o1)) {
-			if (isInstanceOfRound(o2)) {
-				return detectCircleIntersect(o1 as RoundType, o2 as RoundType)
-			}
-
-			if (isInstanceOfRectangular(o2)) {
-				return detectRectCircleIntersect(o2 as RectangularType, o1 as RoundType)
-			}
-		}
-
-		if (isInstanceOfRectangular(o1)) {
-			if (isInstanceOfRectangular(o2)) {
-				return detectRectIntersect(o1 as RectangularType, o2 as RectangularType);
-			} else {
-				return detectRectCircleIntersect(o1 as RectangularType, o2 as RoundType);
-			}
-		}
-
-		return false;
-	}
 
 	spawnObject = (object: GameObject) => this.gameObjects.push(object);
 	despawnObject = (object: GameObject) => this.gameObjects = this.gameObjects.filter(({ id }) => object.id !== id);

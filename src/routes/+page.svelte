@@ -5,11 +5,14 @@
 
 <script>
 	import Platformer from "$lib/components/Platformer.svelte";
+	import Puzzle from "$lib/components/Puzzle.svelte";
 
 </script>
 
 <section>
 	<Platformer />
+	<!-- <Puzzle /> -->
+
 </section>
 
 <style lang="sass">

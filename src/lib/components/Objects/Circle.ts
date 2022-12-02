@@ -1,14 +1,9 @@
 import { Vector2D } from "../Vector";
 import { G } from "../Constants";
-import type { IGameObject } from "./Interfaces";
-import { v4 as uuid } from 'uuid';
+import { GameObject, type IColliding, type ISupportPhisics } from "./GameObject";
 
 
-export default class Circle implements IGameObject {
-	id: string;
-	vCoordinates: Vector2D;
-	vVelocity: Vector2D;
-
+export default class Circle extends GameObject implements IColliding, ISupportPhisics {
 	isColliding = false;
 	isAtFloor = false;
 
@@ -17,9 +12,7 @@ export default class Circle implements IGameObject {
 	mass: number;
 
 	constructor(vCoordinates: Vector2D, vVelocity = new Vector2D()) {
-		this.vCoordinates = vCoordinates;
-		this.vVelocity = vVelocity;
-		this.id = uuid();
+		super(vCoordinates, vVelocity);
 		this.radius = 15;
 		this.friction = 0.005;
 		this.mass = 30;

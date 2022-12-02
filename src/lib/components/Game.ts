@@ -4,6 +4,8 @@ import type { ICoordinates, IRectangleSize } from './Objects/Interfaces';
 import Player from './Objects/Characters/Player';
 import Platform from './Objects/Platform';
 import { Vector2D } from './Vector';
+import Santa from './Objects/Characters/Santa';
+import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 
 class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
@@ -22,13 +24,24 @@ class AssetManager {
 	});
 }
 
+export interface IGameState {
+	isGameOver: boolean;
+	level: number;
+	player?: Player;
+	santa?: Santa;
+}
+
 export class Game {
 	context: CanvasRenderingContext2D;
 	viewPortSize: { width: number; height: number };
 	gameDriver: GameDriver;
 	assetManager: AssetManager;
 	
-	player?: Player;
+	playerRespawn = new Vector2D(250, 250);
+	gameState: IGameState = {
+		isGameOver: false,
+		level: 1,
+	}
 
 	constructor(context: CanvasRenderingContext2D, viewPortSize: IRectangleSize) {
 		this.context = context;
@@ -37,21 +50,41 @@ export class Game {
 		this.assetManager = new AssetManager();
 	}
 
-	gameStart = () => {
-		this.spawnPlayer();
+	gameStart = async (): Promise<IGameState> => {
+		await this.spawnPlayer();
+		this.addSantaMeetingEventListener();
+		this.addGameOverEventListener()
 		this.gameDriver.start();
+		return this.gameState;
 	};
 
-	loadMap = () => Promise.all(MapJson.platforms.map(({ id, position, size }) => this.spawnPlatform(id, position, size)));
-	worldReset = () => this.gameDriver.worldReset();
-	
+	loadMap = () => {
+		return Promise.all([
+			Promise.all(MapJson.characters.map(({ position }) => this.spawnSanta(position))),
+			Promise.all(MapJson.platforms.map(({ id, position, size }) => this.spawnPlatform(id, position, size))),
+		])
+	};
+
 	spawnPlayer = async () => {
-		this.player && this.gameDriver.despawnObject(this.player);
-		this.player = new Player(new Vector2D(250, 250), await this.assetManager.get('characters/player'));
-		this.gameDriver.spawnObject(this.player);
+		let eventListeners: (GameCollisionEvent | GameEdgeEvent)[] = [];
+		if (this.gameState.player) {
+			eventListeners = [...this.gameState.player.eventListeners];
+			this.gameDriver.despawnObject(this.gameState.player);
+		}
+
+		this.gameState.player = new Player(this.playerRespawn, await this.assetManager.get('characters/player'));
+		this.gameState.player.eventListeners = eventListeners;
+		this.gameDriver.spawnObject(this.gameState.player);
 	};
 
-	spawnPlatform = async(id: string, coordinates?: ICoordinates, size?: IRectangleSize) => {
+	spawnSanta = async (position: ICoordinates) => {
+		this.gameState.santa && this.gameDriver.despawnObject(this.gameState.santa);
+		this.gameState.santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), await this.assetManager.get('characters/santa'));
+		this.gameDriver.spawnObject(this.gameState.santa);
+		return this.gameState.santa;
+	}
+
+	spawnPlatform = async (id: string, coordinates?: ICoordinates, size?: IRectangleSize) => {
 		const [head, body]: HTMLImageElement[] = await Promise.all([
 			this.assetManager.get(`platforms/${id}/head`),
 			this.assetManager.get(`platforms/${id}/body`)
@@ -66,6 +99,26 @@ export class Game {
 		this.gameDriver.spawnObject(platform);
 		return platform;
 	};
-	
+
+	addGameOverEventListener = () => {
+		if (this.gameState.player) {
+			this.gameState.player
+				.addEventListener(new GameEdgeEvent('less', 'y', 0, true, this.spawnPlayer));
+		}
+	};
+
+	addSantaMeetingEventListener = () => {
+		if (this.gameState.player && this.gameState.santa) {
+			this.gameState.player
+				.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startFlipGame));
+		}
+	};
+
+	startFlipGame = () => {
+		this.playerRespawn = this.gameState.santa ? this.gameState.santa.vCoordinates.getCopy() : this.playerRespawn
+		this.startFlipGameCallback();
+	}
+
+	startFlipGameCallback = () => { console.log('startFlipGame'); };
 
 }

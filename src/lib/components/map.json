@@ -1,4 +1,13 @@
 {
+	"characters": [
+		{
+			"id": "santa",
+			"position": {
+				"x": 1000,
+				"y": 300
+			}
+		}
+	],
 	"platforms": [
 		{
 			"id": "base",
@@ -37,7 +46,7 @@
 			"id": "base",
 			"position": {
 				"x": 900,
-				"y": 350
+				"y": 400
 			},
 			"size": {
 				"width": 300,

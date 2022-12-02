@@ -1,8 +1,8 @@
 import { Vector2D } from "../../Vector";
 import { G } from "../../Constants";
-import { GameObject, type IRectangular, type ISupportPhisics } from "../GameObject";
+import { GameObject, type IColliding, type IRectangular, type ISupportPhisics } from "../GameObject";
 
-export default class Player extends GameObject implements IRectangular, ISupportPhisics {
+export default class Player extends GameObject implements IRectangular, IColliding, ISupportPhisics {
 	// Implements IRectangular interface
 	width: number;
 	height: number;
@@ -10,8 +10,10 @@ export default class Player extends GameObject implements IRectangular, ISupport
 	// Implements ISupportPhisics interface
 	friction: number;
 	mass: number;
-	isColliding = false;
 	isAtFloor = false;
+
+	// Implements IColliding interface
+	isColliding = false;
 
 	sprite: HTMLImageElement;
 	time = 0;
@@ -27,8 +29,8 @@ export default class Player extends GameObject implements IRectangular, ISupport
 		super(vCoordinates, new Vector2D());
 		this.sprite = sprite;
 
-		this.width = 50;
-		this.height = 50;
+		this.width = 64;
+		this.height = 64;
 		this.friction = 0.1;
 		this.mass = 100;
 		this.horizontalMoveSpeed = 500;
@@ -68,6 +70,8 @@ export default class Player extends GameObject implements IRectangular, ISupport
 	}
 
 	update = (timePassed: number, vViewCoordinates: Vector2D): void => {
+		this.checkEventListeners();
+
 		this.time += timePassed;
 		this.vVelocity.y -= (G * this.mass) * timePassed;
 		this.vVelocity.x = 0;
@@ -87,6 +91,15 @@ export default class Player extends GameObject implements IRectangular, ISupport
 		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
 		vViewCoordinates.x = this.vCoordinates.x - 250;
+	}
+
+	checkEventListeners = () => {
+		this.eventListeners.forEach(event => {
+			if (event.check(this)) {
+				event.callback();
+				event.once && this.removeEventListener(event.id);
+			}
+		})
 	}
 
 	getTop = () => this.height;
