@@ -62,11 +62,11 @@
 			"type": "static",
 			"position": {
 				"x": 1500,
-				"y": 300
+				"y": -200
 			},
 			"size": {
 				"width": 100,
-				"height": 25
+				"height": 525
 			}
 		},
 		{
@@ -74,11 +74,11 @@
 			"type": "static",
 			"position": {
 				"x": 2000,
-				"y": 200
+				"y": -200
 			},
 			"size": {
 				"width": 100,
-				"height": 25
+				"height": 425
 			}
 		},
 		{
