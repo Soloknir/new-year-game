@@ -33,7 +33,7 @@ export default class Platform extends GameObject implements IRectangular {
 					Math.min(128, width),
 					Math.min(128, height),
 					128 * column + viewCoords.x - vViewCoordinates.x,
-					128 * row + viewCoords.y - this.height,
+					128 * row + viewCoords.y - this.height + vViewCoordinates.y,
 					Math.min(128, width),
 					Math.min(128, height)
 				);

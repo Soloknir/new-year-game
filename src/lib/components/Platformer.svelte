@@ -30,8 +30,13 @@
 	async function handleAddMovingPlatform() {
 		platforms = [
 			...platforms,
-			await game.spawnMovingPlatform('base', { x: 200, y: 200 },  { x: 300, y: 300 }, 10, { width: 100, height: 20 })
+			await game.spawnMovingPlatform('base', { x: 200, y: 200 }, { target: { x: 300, y: 300 }, duation: 10, repeat: 'fromEnd' }, { width: 100, height: 20 })
 		];
+	}
+
+	function handleDespawnPlatform(platform: Platform) {
+		game.gameDriver.despawnObject(platform);
+		platforms = [...platforms.filter(({ id }) => platform.id !== id)]
 	}
 
 	function handleDownloadMap() {
@@ -50,9 +55,13 @@
 
 				if (platform instanceof MovingPlatform) {
 					result.type = 'dynamic';
-					result.position = platform.vSpawnCoordinates.getCoordsObject();
-					result.target = platform.vTargetCoordinates.getCoordsObject();
-					result.duration = platform.duration;
+					result.position = platform.vSpawn.getCoordsObject();
+					result.behavior = {
+						duration: platform.behavior.duration,
+						repeat: platform.behavior.repeat,
+						target: platform.behavior.vTarget.getCoordsObject(),
+						delay: platform.behavior.delay
+					}
 				}
 
 				return result;
@@ -164,17 +173,18 @@
 				<div>
 					Moving platform:
 					<div>
-						<input type="number" bind:value={platform.vSpawnCoordinates.x} />
-						<input type="number" bind:value={platform.vSpawnCoordinates.y} />
+						<input type="number" bind:value={platform.vSpawn.x} />
+						<input type="number" bind:value={platform.vSpawn.y} />
+						<button on:click={() => handleDespawnPlatform(platform)}>Despawn</button>
 					</div>
 					<div>
 						<input type="number" bind:value={platform.width} />
 						<input type="number" bind:value={platform.height} />
-						<input type="number" bind:value={platform.duration} />
+						<input type="number" bind:value={platform.behavior.duration} />
 					</div>
 					<div>
-						<input type="number" bind:value={platform.vTargetCoordinates.x} />
-						<input type="number" bind:value={platform.vTargetCoordinates.y} />
+						<input type="number" bind:value={platform.behavior.vTarget.x} />
+						<input type="number" bind:value={platform.behavior.vTarget.y} />
 					</div>
 				</div>
 			{:else}
@@ -184,6 +194,7 @@
 					<input type="number" bind:value={platform.vCoordinates.y} />
 					<input type="number" bind:value={platform.width} />
 					<input type="number" bind:value={platform.height} />
+					<button on:click={() => handleDespawnPlatform(platform)}>Despawn</button>
 				</div>
 			{/if}
 		{/each}

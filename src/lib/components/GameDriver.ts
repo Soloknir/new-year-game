@@ -12,6 +12,7 @@ export default class GameDriver {
 	viewPortHeight: number;
 
 	gameObjects: GameObject[] = [];
+	backgroundImage: HTMLImageElement | null = null;
 
 	time = 0;
 	secondsPassed = 0;
@@ -34,12 +35,11 @@ export default class GameDriver {
 
 		this.detectPlatformCollision();
 
-		this.context.clearRect(0, 0, this.viewPortWidth, this.viewPortHeight);
+		if (this.backgroundImage) {
+			this.context.drawImage(this.backgroundImage, 0, 0, this.viewPortWidth, this.viewPortHeight);
+		}
 
 		this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
-
-		// this.context.fillStyle = 'rgba(0,0,0,0.7)';
-		// this.context.fillRect(0, 0, this.viewPortWidth, this.viewPortHeight);
 	
 		this.drawFps(Math.round(1 / this.secondsPassed));
 

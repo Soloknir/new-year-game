@@ -11,7 +11,11 @@ export class Vector2D {
 
 	getCopy = () => new Vector2D(this.x, this.y);
 	getCoordsObject = () => ({ x: this.x, y: this.y });
-	setByCoordsObject = ({ x, y }: ICoordinates) => { this.x = x; this.y = y };
+	setByCoordsObject = ({ x, y }: ICoordinates) => {
+		this.x = x;
+		this.y = y;
+		return this;
+	};
 	ceil = () => {
 		this.x = Math.ceil(this.x);
 		this.y = Math.ceil(this.y);

@@ -51,7 +51,9 @@ export class Game {
 		this.assetManager = new AssetManager();
 	}
 
+
 	gameStart = async (): Promise<IGameState> => {
+		this.gameDriver.backgroundImage = await this.assetManager.get('snow-pack/png/bg_snow')
 		await this.spawnPlayer();
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener()
@@ -62,10 +64,11 @@ export class Game {
 	loadMap = () => {
 		return Promise.all([
 			Promise.all(MapJson.characters.map(({ position }) => this.spawnSanta(position))),
-			Promise.all(MapJson.platforms.map(({ id, type, position, target, duration, size }: any) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			Promise.all(MapJson.platforms.map(({ id, type, position, behavior, size }: any) => {
 				return (type === 'static')
 					? this.spawnPlatform(id, position, size)
-					: this.spawnMovingPlatform(id, position, target, duration, size);
+					: this.spawnMovingPlatform(id, position, behavior, size);
 			})),
 		])
 	};
@@ -96,7 +99,7 @@ export class Game {
 		]);
  
 		const platform = new Platform(
-			coordinates ? new Vector2D(coordinates.x, coordinates.y) : new Vector2D(),
+			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
 			size ? size : { width: 0, height: 0 },
 			{ head, body }
 		);
@@ -105,16 +108,16 @@ export class Game {
 		return platform;
 	};
 
-	spawnMovingPlatform = async (id: string, coordinates?: ICoordinates, target?: ICoordinates, duration?: number, size?: IRectangleSize) => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	spawnMovingPlatform = async (id: string, coordinates?: ICoordinates, behavior?: any, size?: IRectangleSize) => {
 		const [head, body]: HTMLImageElement[] = await Promise.all([
 			this.assetManager.get(`platforms/${id}/head`),
 			this.assetManager.get(`platforms/${id}/body`)
 		]);
 
 		const platform = new MovingPlatform(
-			coordinates ? new Vector2D(coordinates.x, coordinates.y) : new Vector2D(),
-			target ? new Vector2D(target.x, target.y) : new Vector2D(),
-			duration || 1,
+			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
+			behavior ? { ...behavior, vTarget: (new Vector2D()).setByCoordsObject(behavior.target)} : { vTarget: new Vector2D(), duration: 1, repeat: 'none' },
 			size ? size : { width: 0, height: 0 },
 			{ head, body }
 		);
