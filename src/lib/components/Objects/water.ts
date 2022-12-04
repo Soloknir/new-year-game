@@ -2,15 +2,14 @@ import { Vector2D } from "../Vector";
 import type { IRectangleSize } from "./Interfaces";
 import { GameObject, type IRectangular } from "./GameObject";
 
-export interface IPlatformTexture { head: HTMLImageElement, body: HTMLImageElement }
-export default class Platform extends GameObject implements IRectangular {
+export default class Water extends GameObject implements IRectangular {
 	// Implements IRectangular interface
 	width: number;
 	height: number;
-	
-	textures: { head: HTMLImageElement, body: HTMLImageElement };
 
-	constructor(vCoordinates: Vector2D, size: IRectangleSize, textures: IPlatformTexture) {
+	textures: HTMLImageElement;
+
+	constructor(vCoordinates: Vector2D, size: IRectangleSize, textures: HTMLImageElement) {
 		super(vCoordinates, new Vector2D());
 
 		this.width = size.width;
@@ -28,7 +27,7 @@ export default class Platform extends GameObject implements IRectangular {
 
 			while (width > 0) {
 				context.drawImage(
-					row === 0 ? this.textures.head : this.textures.body,
+					this.textures,
 					0, 0,
 					Math.min(128, width),
 					Math.min(128, height),
@@ -46,9 +45,4 @@ export default class Platform extends GameObject implements IRectangular {
 			row++;
 		}
 	}
-
-	getTop = () => this.height;
-	getBottom = () => 0;
-	getLeft = () => 0;
-	getRight = () => this.width;
 }

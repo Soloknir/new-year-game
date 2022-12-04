@@ -10,7 +10,7 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 	// Implements ISupportPhisics interface
 	friction: number;
 	mass: number;
-	isAtFloor = false;
+	platform: GameObject | null = null;
 
 	// Implements IColliding interface
 	isColliding = false;
@@ -63,7 +63,7 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 			frameWidth - frameWidth / 4,
 			frameHeight - 2,
 			viewCoords.x - vViewCoordinates.x,
-			viewCoords.y - this.height,
+			viewCoords.y - this.height + vViewCoordinates.y,
 			this.width,
 			this.height
 		);
@@ -82,15 +82,19 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 		if (this.isMoveLeft) {
 			this.vVelocity.x -= this.horizontalMoveSpeed;
 		}
+		if (this.platform) {
+			this.vVelocity.x += this.platform.vVelocity.x ;
+		}
 
-		if (this.isJumping && this.isAtFloor) {
-			this.isAtFloor = false;
+		if (this.isJumping && this.platform) {
+			this.platform = null;
 			this.vVelocity.y = this.jumpImpulse;
 		}
 
 		this.vCoordinates.x += this.vVelocity.x * timePassed;
 		this.vCoordinates.y += this.vVelocity.y * timePassed;
 		vViewCoordinates.x = this.vCoordinates.x - 250;
+		vViewCoordinates.y = this.vCoordinates.y - 250;
 	}
 
 	checkEventListeners = () => {

@@ -6,6 +6,7 @@ import Platform from './Objects/Platform';
 import { Vector2D } from './Vector';
 import Santa from './Objects/Characters/Santa';
 import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
+import MovingPlatform from './Objects/MovingPlatform';
 
 class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
@@ -50,7 +51,9 @@ export class Game {
 		this.assetManager = new AssetManager();
 	}
 
+
 	gameStart = async (): Promise<IGameState> => {
+		this.gameDriver.backgroundImage = await this.assetManager.get('snow-pack/png/bg_snow')
 		await this.spawnPlayer();
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener()
@@ -61,7 +64,12 @@ export class Game {
 	loadMap = () => {
 		return Promise.all([
 			Promise.all(MapJson.characters.map(({ position }) => this.spawnSanta(position))),
-			Promise.all(MapJson.platforms.map(({ id, position, size }) => this.spawnPlatform(id, position, size))),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			Promise.all(MapJson.platforms.map(({ id, type, position, behavior, size }: any) => {
+				return (type === 'static')
+					? this.spawnPlatform(id, position, size)
+					: this.spawnMovingPlatform(id, position, behavior, size);
+			})),
 		])
 	};
 
@@ -91,11 +99,29 @@ export class Game {
 		]);
  
 		const platform = new Platform(
-			coordinates ? new Vector2D(coordinates.x, coordinates.y) : new Vector2D(),
+			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
 			size ? size : { width: 0, height: 0 },
 			{ head, body }
 		);
 	
+		this.gameDriver.spawnObject(platform);
+		return platform;
+	};
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	spawnMovingPlatform = async (id: string, coordinates?: ICoordinates, behavior?: any, size?: IRectangleSize) => {
+		const [head, body]: HTMLImageElement[] = await Promise.all([
+			this.assetManager.get(`platforms/${id}/head`),
+			this.assetManager.get(`platforms/${id}/body`)
+		]);
+
+		const platform = new MovingPlatform(
+			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
+			behavior ? { ...behavior, vTarget: (new Vector2D()).setByCoordsObject(behavior.target)} : { vTarget: new Vector2D(), duration: 1, repeat: 'none' },
+			size ? size : { width: 0, height: 0 },
+			{ head, body }
+		);
+
 		this.gameDriver.spawnObject(platform);
 		return platform;
 	};
@@ -109,8 +135,7 @@ export class Game {
 
 	addSantaMeetingEventListener = () => {
 		if (this.gameState.player && this.gameState.santa) {
-			this.gameState.player
-				.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startMiniGame));
+			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startMiniGame));
 		}
 	};
 
@@ -118,7 +143,7 @@ export class Game {
 		if (this.gameState.santa && this.gameState.player) {
 			this.playerRespawn =this.gameState.santa.vCoordinates.getCopy();
 			this.gameState.santa.vCoordinates = new Vector2D(2400, 350);
-			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.winGameCallback))
+			// this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.winGameCallback))
 			
 			this.startFlipGameCallback();
 		}

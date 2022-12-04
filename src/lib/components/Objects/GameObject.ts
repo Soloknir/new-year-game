@@ -94,7 +94,7 @@ export interface IColliding {
 export interface ISupportPhisics {
 	friction: number;
 	mass: number;
-	isAtFloor: boolean;
+	platform: GameObject | null;
 }
 
 

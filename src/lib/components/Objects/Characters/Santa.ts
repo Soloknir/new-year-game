@@ -36,7 +36,7 @@ export default class Santa extends GameObject implements IRectangular, ICollidin
 			frameWidth - frameWidth / 4,
 			frameHeight - 2,
 			viewCoords.x - vViewCoordinates.x,
-			viewCoords.y - this.height,
+			viewCoords.y - this.height + vViewCoordinates.y,
 			this.width,
 			this.height
 		);
