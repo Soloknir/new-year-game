@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onMount, onDestroy } from "svelte";
   const dispatch = createEventDispatcher();
 
   export let target = 10;
@@ -222,6 +222,8 @@
     rAF = requestAnimationFrame(loop);
     window.addEventListener('keydown', handleKeyDown);
   });
+
+  onDestroy(() => cancelAnimationFrame(rAF));
 
   // game loop
   function loop() {

@@ -1,18 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import FlipMemory from './FlipMemory.svelte';
-	import { Game, type IGameState } from './Game';
-	import type { GameObject } from './Objects/GameObject';
-	import MovingPlatform from './Objects/MovingPlatform';
-	import type Platform from './Objects/Platform';
+	import { Game } from './Game';
 	import PazzleBobble from './PazzleBobble.svelte';
 	import Tetris from './Tetris.svelte';
 
 	let game: Game;
-	let downloadAnchor: HTMLAnchorElement;
 	let canvas: HTMLCanvasElement;
-	let platforms: Platform[] = [];
-	let characters: GameObject[] = [];
 
 	let minigame = false;
 	let winGame = false;
@@ -25,65 +19,6 @@
 
 	let minigameLevel = 0;
 
-	function handleSpawnPlayer() {
-		game.spawnPlayer();
-	}
-
-	async function handleAddPlatform() {
-		platforms = [
-			...platforms,
-			await game.spawnPlatform('base', { x: 0, y: 0 }, { width: 0, height: 0 })
-		];
-	}
-
-	async function handleAddMovingPlatform() {
-		platforms = [
-			...platforms,
-			await game.spawnMovingPlatform('base', { x: 200, y: 200 }, { target: { x: 300, y: 300 }, duation: 10, repeat: 'fromEnd' }, { width: 100, height: 20 })
-		];
-	}
-
-	function handleDespawnPlatform(platform: Platform) {
-		game.gameDriver.despawnObject(platform);
-		platforms = [...platforms.filter(({ id }) => platform.id !== id)]
-	}
-
-	function handleDownloadMap() {
-		const payload = {
-			characters: characters.map((platform) => ({
-				id: 'santa',
-				position: platform.vCoordinates.getCoordsObject()
-			})),
-			platforms: platforms.map((platform) => {
-				const result: any = {
-					id: 'base',
-					type: 'static',
-					position: platform.vCoordinates.getCoordsObject(),
-					size: { width: platform.width, height: platform.height }
-				};
-
-				if (platform instanceof MovingPlatform) {
-					result.type = 'dynamic';
-					result.position = platform.vSpawn.getCoordsObject();
-					result.behavior = {
-						duration: platform.behavior.duration,
-						repeat: platform.behavior.repeat,
-						target: platform.behavior.vTarget.getCoordsObject(),
-						delay: platform.behavior.delay,
-						shift: platform.behavior.shift
-					}
-				}
-
-				return result;
-			})
-		};
-
-		var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload));
-		downloadAnchor.setAttribute('href', dataStr);
-		downloadAnchor.setAttribute('download', 'map.json');
-		downloadAnchor.click();
-	}
-
 	onMount(async () => {
 		const context = canvas.getContext('2d');
 
@@ -92,14 +27,18 @@
 
 			game = new Game(context, { width: rect.width, height: rect.height });
 
-			[characters, platforms] = await game.loadMap();
+			await game.loadMap();
 			game.gameStart();
 			game.startMinigameCallback = () => {
-				minigame = true;
-				if (game.gameState.player) {
-					game.gameState.player.stopJumping();
-					game.gameState.player.stopMoveRight();
-					game.gameState.player.stopMoveLeft();
+				if (minigameLevel < minigames.length) {
+					minigame = true;
+					if (game.gameState.player) {
+						game.gameState.player.stopJumping();
+						game.gameState.player.stopMoveRight();
+						game.gameState.player.stopMoveLeft();
+					}
+				} else {
+					winGame = true;
 				}
 			};
 
@@ -151,9 +90,9 @@
 
 <div class="container">
 	{#if winGame}
-		<h1>You win!</h1>
+		<h1>Вы победили! С Новым Годом!</h1>
 	{/if}
-	{#if minigame}
+	{#if !winGame && minigame}
 		<svelte:component this="{minigames[minigameLevel]}" on:done="{handleMinigameEnd}"/>
 		<button on:click={handleMinigameEnd}>Skip minigame</button>
 	{/if}
@@ -165,57 +104,6 @@
 	>
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
-	<div style:display={minigame || winGame ? 'none' : 'block'} class="dev toolbar">
-		<button on:click={handleSpawnPlayer}>Spawn player</button>
-	</div>
-	<div style:display={minigame || winGame ? 'none' : 'block'} class="dev">
-		<!-- svelte-ignore a11y-missing-attribute -->
-		<!-- svelte-ignore a11y-missing-content -->
-		<a bind:this={downloadAnchor} style:display="none" />
-
-		{#each characters as character}
-			<div>
-				Character:
-				<input type="number" bind:value={character.vCoordinates.x} />
-				<input type="number" bind:value={character.vCoordinates.y} />
-			</div>
-		{/each}
-		{#each platforms as platform}
-			{#if platform instanceof MovingPlatform}
-				<div>
-					Moving platform:
-					<div>
-						<input type="number" bind:value={platform.vSpawn.x} />
-						<input type="number" bind:value={platform.vSpawn.y} />
-						<button on:click={() => handleDespawnPlatform(platform)}>Despawn</button>
-					</div>
-					<div>
-						<input type="number" bind:value={platform.width} />
-						<input type="number" bind:value={platform.height} />
-						<input type="number" bind:value={platform.behavior.duration} />
-					</div>
-					<div>
-						<input type="number" bind:value={platform.behavior.vTarget.x} />
-						<input type="number" bind:value={platform.behavior.vTarget.y} />
-					</div>
-				</div>
-			{:else}
-				<div>
-					Base platform:
-					<input type="number" bind:value={platform.vCoordinates.x} />
-					<input type="number" bind:value={platform.vCoordinates.y} />
-					<input type="number" bind:value={platform.width} />
-					<input type="number" bind:value={platform.height} />
-					<button on:click={() => handleDespawnPlatform(platform)}>Despawn</button>
-				</div>
-			{/if}
-		{/each}
-	</div>
-	<div style:display={minigame || winGame ? 'none' : 'block'}>
-		<button on:click={handleAddPlatform}>Add platform</button>
-		<button on:click={handleAddMovingPlatform}>Add moving platform</button>
-		<button on:click={handleDownloadMap}>Download map</button>
-	</div>
 </div>
 
 <style lang="sass">

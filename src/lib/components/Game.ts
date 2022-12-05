@@ -46,7 +46,7 @@ export class Game {
 	santaSpawnPositions: Vector2D[] = [
 		new Vector2D(2400, 350),
 		new Vector2D(3800, 200),
-		new Vector2D(),
+		new Vector2D(5100, 200),
 	];
 
 	gameState: IGameState = {
@@ -177,9 +177,11 @@ export class Game {
 		if (this.gameState.santa && this.gameState.player && this.gameDriver.overlay) {
 			delete this.gameState.overlay;
 			this.gameDriver.overlay = null;
-			this.playerRespawn =this.gameState.santa.vCoordinates.getCopy();
-			this.gameState.santa.vCoordinates = this.santaSpawnPositions[this.currentSantaSpawn++].getCopy();
-			this.addSantaMeetingEventListener()
+			this.playerRespawn = this.gameState.santa.vCoordinates.getCopy();
+			if (this.currentSantaSpawn < 3) {
+				this.gameState.santa.vCoordinates = this.santaSpawnPositions[this.currentSantaSpawn++].getCopy();
+				this.addSantaMeetingEventListener();
+			}
 			this.startMinigameCallback();
 		}
 	}

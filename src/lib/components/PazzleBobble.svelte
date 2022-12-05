@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onDestroy, onMount } from "svelte";
 	const dispatch = createEventDispatcher();
 
   let canvas: HTMLCanvasElement;
@@ -265,6 +265,7 @@
     getNewBubble();
   }
 
+  let rAF: number;
   onMount(() => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -293,13 +294,15 @@
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     
-    requestAnimationFrame(loop);
+    rAF = requestAnimationFrame(loop);
   });
+
+  onDestroy(() => cancelAnimationFrame(rAF))
 
 
   // game loop
   function loop() {
-    requestAnimationFrame(loop);
+    rAF = requestAnimationFrame(loop);
     context.clearRect(0,0,canvas.width,canvas.height);
 
     // move the shooting arrow

@@ -52,7 +52,7 @@ export default class GameDriver {
 	}
 
 	drawFps = (timeStamp: number) => {
-		this.context.fillStyle = 'black';
+		this.context.fillStyle = '#fff';
 		this.context.font = '20px Arial';
 		this.context.textAlign = 'right';
 		this.context.textBaseline = 'bottom';

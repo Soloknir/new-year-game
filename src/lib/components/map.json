@@ -147,6 +147,42 @@
 				"width": 300,
 				"height": 100
 			}
+		},
+		{
+			"id": "base",
+			"type": "static",
+			"position": {
+				"x": 4200,
+				"y": 200
+			},
+			"size": {
+				"width": 300,
+				"height": 100
+			}
+		},
+		{
+			"id": "base",
+			"type": "static",
+			"position": {
+				"x": 4600,
+				"y": -200
+			},
+			"size": {
+				"width": 300,
+				"height": 300
+			}
+		},
+		{
+			"id": "base",
+			"type": "static",
+			"position": {
+				"x": 5000,
+				"y": -200
+			},
+			"size": {
+				"width": 200,
+				"height": 400
+			}
 		}
 	]
 }
