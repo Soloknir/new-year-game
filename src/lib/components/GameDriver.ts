@@ -2,6 +2,7 @@ import { detectObjectIntersect } from "./Helpers/Intersections";
 import { isInstanceOfColliding, isInstanceOfSupportPhisics, type GameObject, type IColliding, type ISupportPhisics } from "./Objects/GameObject";
 import type { IRectangleSize } from "./Objects/Interfaces";
 import MovingPlatform from "./Objects/MovingPlatform";
+import type Overlay from "./Objects/Overlay";
 import Platform from "./Objects/Platform";
 import { Vector2D } from "./Vector";
 
@@ -12,6 +13,7 @@ export default class GameDriver {
 	viewPortHeight: number;
 
 	gameObjects: GameObject[] = [];
+	overlay: Overlay | null = null;
 	backgroundImage: HTMLImageElement | null = null;
 
 	time = 0;
@@ -27,20 +29,25 @@ export default class GameDriver {
 	start = () => window.requestAnimationFrame(this.gameLoop);
 
 	gameLoop = (timeStamp: number) => {
-		this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
-		this.time += this.secondsPassed;
-		this.oldTimeStamp = timeStamp;
-
-		this.gameObjects.forEach(obj => obj.update(Math.min(this.secondsPassed, 0.1), this.vViewCoordinates));
-
-		this.detectPlatformCollision();
-
-		if (this.backgroundImage) {
-			this.context.drawImage(this.backgroundImage, 0, 0, this.viewPortWidth, this.viewPortHeight);
+		if (!this.overlay) {
+			this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
+			this.time += this.secondsPassed;
+			this.oldTimeStamp = timeStamp;
+	
+			this.gameObjects.forEach(obj => obj.update(Math.min(this.secondsPassed, 0.1), this.vViewCoordinates));
+	
+			this.detectPlatformCollision();
+	
+			if (this.backgroundImage) {
+				this.context.drawImage(this.backgroundImage, 0, 0, this.viewPortWidth, this.viewPortHeight);
+			}
+	
+			this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
+			this.drawFps(Math.round(1 / this.secondsPassed));
+		} else {
+			this.overlay.draw(this.context);
 		}
-
-		this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
-		this.drawFps(Math.round(1 / this.secondsPassed));
+	
 		window.requestAnimationFrame(this.gameLoop);
 	}
 

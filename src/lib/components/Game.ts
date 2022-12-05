@@ -8,20 +8,21 @@ import Santa from './Objects/Characters/Santa';
 import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 import MovingPlatform from './Objects/MovingPlatform';
 import Water from './Objects/Water';
+import Overlay from './Objects/Overlay';
 
 class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
 	
-	get = async (path: string) => this.assets[path] || await this.loadAsset(path);
+	get = async (path: string, format: 'png' | 'jpg' = 'png') => this.assets[path] || await this.loadAsset(path, format);
 
 	loadAssets = async (paths: string[]) => {
 		const assets = await Promise.all(paths.map((path: string) => this.loadAsset(path)));
 		paths.map((path, index) => this.assets[path] = assets[index]);
 	}
 
-	loadAsset = (path: string) => new Promise<HTMLImageElement>((resolve) => {
+	loadAsset = (path: string, format: 'png' | 'jpg' = 'png') => new Promise<HTMLImageElement>((resolve) => {
 		const image = new Image();
-		image.src = `src/lib/images/${path}.png`;
+		image.src = `src/lib/images/${path}.${format}`;
 		image.onload = () => resolve(image);
 	});
 }
@@ -31,6 +32,7 @@ export interface IGameState {
 	level: number;
 	player?: Player;
 	santa?: Santa;
+	overlay?: Overlay;
 }
 
 export class Game {
@@ -46,6 +48,7 @@ export class Game {
 		new Vector2D(3800, 200),
 		new Vector2D(),
 	];
+
 	gameState: IGameState = {
 		isGameOver: false,
 		level: 1,
@@ -102,19 +105,27 @@ export class Game {
 
 	spawnWater = async () => {
 		const [head, body]: HTMLImageElement[] = await Promise.all([
-			this.assetManager.get('snow-pack/png/snow_93'),
-			this.assetManager.get('snow-pack/png/snow_95')
+			this.assetManager.get('water/head'),
+			this.assetManager.get('water/body')
 		]);
 
-		const platform = new Water(
+		const water = new Water(
 			new Vector2D(0, -400),
 			{ width: 2 * this.viewPortSize.width, height: 400},
 			{ head, body }
 		);
 
-		this.gameDriver.spawnObject(platform);
-		return platform;
+		this.gameDriver.spawnObject(water);
+		return water;
 	}
+
+	spawnOverlay = async () => {
+		this.gameState.overlay = this.gameDriver.overlay = new Overlay(
+			new Vector2D(0, 0),
+			this.viewPortSize,
+			await this.assetManager.get('dialog-overlay', 'jpg')
+		);
+	};
 
 	spawnPlatform = async (id: string, coordinates?: ICoordinates, size?: IRectangleSize) => {
 		const [head, body]: HTMLImageElement[] = await Promise.all([
@@ -158,12 +169,14 @@ export class Game {
 
 	addSantaMeetingEventListener = () => {
 		if (this.gameState.player && this.gameState.santa) {
-			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.startMiniGame));
+			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.spawnOverlay));
 		}
 	};
 
 	startMiniGame = () => {
-		if (this.gameState.santa && this.gameState.player) {
+		if (this.gameState.santa && this.gameState.player && this.gameDriver.overlay) {
+			delete this.gameState.overlay;
+			this.gameDriver.overlay = null;
 			this.playerRespawn =this.gameState.santa.vCoordinates.getCopy();
 			this.gameState.santa.vCoordinates = this.santaSpawnPositions[this.currentSantaSpawn++].getCopy();
 			this.addSantaMeetingEventListener()

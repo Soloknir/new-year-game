@@ -124,6 +124,9 @@
 				case 'KeyA':
 					game.gameState.player.startMoveLeft();
 					break;
+				case 'Space':
+					game.startMiniGame();
+					break;
 			}
 		}
 	}
