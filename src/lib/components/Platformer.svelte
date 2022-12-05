@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import FlipMemoryGame from './FlipMemoryGame.svelte';
+	import FlipMemory from './FlipMemory.svelte';
 	import { Game, type IGameState } from './Game';
 	import type { GameObject } from './Objects/GameObject';
 	import MovingPlatform from './Objects/MovingPlatform';
 	import type Platform from './Objects/Platform';
-	import { Vector2D } from './Vector';
+	import PazzleBobble from './PazzleBobble.svelte';
+	import Tetris from './Tetris.svelte';
 
 	let game: Game;
 	let downloadAnchor: HTMLAnchorElement;
@@ -13,8 +14,16 @@
 	let platforms: Platform[] = [];
 	let characters: GameObject[] = [];
 
-	let showFlip = false;
+	let minigame = false;
 	let winGame = false;
+
+	const minigames = [
+		PazzleBobble,
+		FlipMemory,
+		Tetris
+	];
+
+	let minigameLevel = 0;
 
 	function handleSpawnPlayer() {
 		game.spawnPlayer();
@@ -84,8 +93,8 @@
 
 			[characters, platforms] = await game.loadMap();
 			game.gameStart();
-			game.startFlipGameCallback = () => {
-				showFlip = true;
+			game.startMinigameCallback = () => {
+				minigame = true;
 				if (game.gameState.player) {
 					game.gameState.player.stopJumping();
 					game.gameState.player.stopMoveRight();
@@ -93,19 +102,18 @@
 				}
 			};
 
-			game.winGameCallback = () => (winGame = true);
-
 			window.addEventListener('keydown', handleKeyDown);
 			window.addEventListener('keyup', handleKeyUp);
 		}
 	});
 
-	function hanleSkipFlip() {
-		showFlip = false;
+	function handleMinigameEnd() {
+		minigame = false;
+		minigameLevel++;
 	}
 
 	function handleKeyDown(event: KeyboardEvent) {
-		if (game.gameState && game.gameState.player && !showFlip) {
+		if (game.gameState && game.gameState.player && !minigame) {
 			switch (event.code) {
 				case 'KeyW':
 					game.gameState.player.startJumping();
@@ -121,7 +129,7 @@
 	}
 
 	function handleKeyUp(event: KeyboardEvent) {
-		if (game.gameState && game.gameState.player && !showFlip) {
+		if (game.gameState && game.gameState.player && !minigame) {
 			switch (event.code) {
 				case 'KeyW':
 					game.gameState.player.stopJumping();
@@ -141,22 +149,22 @@
 	{#if winGame}
 		<h1>You win!</h1>
 	{/if}
-	{#if showFlip}
-		<FlipMemoryGame on:done={hanleSkipFlip} />
-		<button on:click={hanleSkipFlip}>Skip flip</button>
+	{#if minigame}
+		<svelte:component this="{minigames[minigameLevel]}" on:done="{handleMinigameEnd}"/>
+		<button on:click={handleMinigameEnd}>Skip minigame</button>
 	{/if}
 	<canvas
-		style:display={showFlip || winGame ? 'none' : 'block'}
+		style:display={minigame || winGame ? 'none' : 'block'}
 		bind:this={canvas}
 		width={1024}
 		height={512}
 	>
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>
-	<div style:display={showFlip || winGame ? 'none' : 'block'} class="dev toolbar">
+	<div style:display={minigame || winGame ? 'none' : 'block'} class="dev toolbar">
 		<button on:click={handleSpawnPlayer}>Spawn player</button>
 	</div>
-	<div style:display={showFlip || winGame ? 'none' : 'block'} class="dev">
+	<div style:display={minigame || winGame ? 'none' : 'block'} class="dev">
 		<!-- svelte-ignore a11y-missing-attribute -->
 		<!-- svelte-ignore a11y-missing-content -->
 		<a bind:this={downloadAnchor} style:display="none" />
@@ -199,7 +207,7 @@
 			{/if}
 		{/each}
 	</div>
-	<div style:display={showFlip || winGame ? 'none' : 'block'}>
+	<div style:display={minigame || winGame ? 'none' : 'block'}>
 		<button on:click={handleAddPlatform}>Add platform</button>
 		<button on:click={handleAddMovingPlatform}>Add moving platform</button>
 		<button on:click={handleDownloadMap}>Download map</button>

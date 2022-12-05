@@ -7,6 +7,7 @@ import { Vector2D } from './Vector';
 import Santa from './Objects/Characters/Santa';
 import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 import MovingPlatform from './Objects/MovingPlatform';
+import Water from './Objects/Water';
 
 class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
@@ -39,6 +40,12 @@ export class Game {
 	assetManager: AssetManager;
 	
 	playerRespawn = new Vector2D(250, 250);
+	currentSantaSpawn = 0;
+	santaSpawnPositions: Vector2D[] = [
+		new Vector2D(2400, 350),
+		new Vector2D(3800, 200),
+		new Vector2D(),
+	];
 	gameState: IGameState = {
 		isGameOver: false,
 		level: 1,
@@ -70,6 +77,7 @@ export class Game {
 					? this.spawnPlatform(id, position, size)
 					: this.spawnMovingPlatform(id, position, behavior, size);
 			})),
+			this.spawnWater()
 		])
 	};
 
@@ -90,6 +98,22 @@ export class Game {
 		this.gameState.santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), await this.assetManager.get('characters/santa'));
 		this.gameDriver.spawnObject(this.gameState.santa);
 		return this.gameState.santa;
+	}
+
+	spawnWater = async () => {
+		const [head, body]: HTMLImageElement[] = await Promise.all([
+			this.assetManager.get('snow-pack/png/snow_93'),
+			this.assetManager.get('snow-pack/png/snow_95')
+		]);
+
+		const platform = new Water(
+			new Vector2D(0, -400),
+			{ width: 2 * this.viewPortSize.width, height: 400},
+			{ head, body }
+		);
+
+		this.gameDriver.spawnObject(platform);
+		return platform;
 	}
 
 	spawnPlatform = async (id: string, coordinates?: ICoordinates, size?: IRectangleSize) => {
@@ -128,8 +152,7 @@ export class Game {
 
 	addGameOverEventListener = () => {
 		if (this.gameState.player) {
-			this.gameState.player
-				.addEventListener(new GameEdgeEvent('less', 'y', 0, false, this.spawnPlayer));
+			this.gameState.player.addEventListener(new GameEdgeEvent('less', 'y', 0, false, this.spawnPlayer));
 		}
 	};
 
@@ -142,15 +165,13 @@ export class Game {
 	startMiniGame = () => {
 		if (this.gameState.santa && this.gameState.player) {
 			this.playerRespawn =this.gameState.santa.vCoordinates.getCopy();
-			this.gameState.santa.vCoordinates = new Vector2D(2400, 350);
-			// this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.winGameCallback))
-			
-			this.startFlipGameCallback();
+			this.gameState.santa.vCoordinates = this.santaSpawnPositions[this.currentSantaSpawn++].getCopy();
+			this.addSantaMeetingEventListener()
+			this.startMinigameCallback();
 		}
 	}
 
 
-	winGameCallback = () => { console.log('win'); }
-	startFlipGameCallback = () => { return; };
+	startMinigameCallback = () => { return; };
 
 }

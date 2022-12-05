@@ -1,6 +1,6 @@
 import { Vector2D } from "../Vector";
 import type { IRectangleSize } from "./Interfaces";
-import Platform, { type IPlatformTexture } from "./Platform";
+import Platform, { type ICompositeTexture } from "./Platform";
 
 type BehaviorRepeatType = 'none' | 'fromStart' | 'fromEnd'
 
@@ -16,7 +16,7 @@ export default class MovingPlatform extends Platform {
 	lastDistance: number;
 	behavior: IMovingBehavior;
 
-	constructor(vCoordinates: Vector2D, behavior: IMovingBehavior, size: IRectangleSize, textures: IPlatformTexture) {
+	constructor(vCoordinates: Vector2D, behavior: IMovingBehavior, size: IRectangleSize, textures: ICompositeTexture) {
 		super(vCoordinates, size, textures);
 
 		this.vSpawn = vCoordinates.getCopy();

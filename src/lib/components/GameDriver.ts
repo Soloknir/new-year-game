@@ -40,9 +40,7 @@ export default class GameDriver {
 		}
 
 		this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
-	
 		this.drawFps(Math.round(1 / this.secondsPassed));
-
 		window.requestAnimationFrame(this.gameLoop);
 	}
 

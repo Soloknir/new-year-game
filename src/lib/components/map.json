@@ -134,6 +134,18 @@
 				"repeat": "fromEnd",
 				"duration": 10
 			}
+		},
+		{
+			"id": "base",
+			"type": "static",
+			"position": {
+				"x": 3800,
+				"y": 100
+			},
+			"size": {
+				"width": 300,
+				"height": 100
+			}
 		}
 	]
 }

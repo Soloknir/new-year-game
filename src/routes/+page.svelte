@@ -12,9 +12,9 @@
 </script>
 
 <section>
-	<!-- <Platformer /> -->
+	<Platformer />
 	<!-- <Tetris /> -->
-	<PazzleBobble />
+	<!-- <PazzleBobble /> -->
 	<!-- <Puzzle /> -->
 
 </section>

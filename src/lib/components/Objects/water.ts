@@ -1,15 +1,16 @@
 import { Vector2D } from "../Vector";
 import type { IRectangleSize } from "./Interfaces";
 import { GameObject, type IRectangular } from "./GameObject";
+import type { ICompositeTexture } from "./Platform";
 
 export default class Water extends GameObject implements IRectangular {
 	// Implements IRectangular interface
 	width: number;
 	height: number;
 
-	textures: HTMLImageElement;
+	textures: ICompositeTexture;
 
-	constructor(vCoordinates: Vector2D, size: IRectangleSize, textures: HTMLImageElement) {
+	constructor(vCoordinates: Vector2D, size: IRectangleSize, textures: ICompositeTexture) {
 		super(vCoordinates, new Vector2D());
 
 		this.width = size.width;
@@ -27,11 +28,11 @@ export default class Water extends GameObject implements IRectangular {
 
 			while (width > 0) {
 				context.drawImage(
-					this.textures,
+					row === 0 ? this.textures.head : this.textures.body,
 					0, 0,
 					Math.min(128, width),
 					Math.min(128, height),
-					128 * column + viewCoords.x - vViewCoordinates.x,
+					128 * column + viewCoords.x - (this.width / 2),
 					128 * row + viewCoords.y - this.height + vViewCoordinates.y,
 					Math.min(128, width),
 					Math.min(128, height)
