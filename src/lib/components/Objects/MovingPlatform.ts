@@ -5,10 +5,11 @@ import Platform, { type ICompositeTexture } from "./Platform";
 type BehaviorRepeatType = 'none' | 'fromStart' | 'fromEnd'
 
 export interface IMovingBehavior {
-	vTarget: Vector2D,
+	vTarget: Vector2D;
 	duration: number;
 	repeat: BehaviorRepeatType;
-	delay?: number
+	delay?: number;
+	shift?: number;
 }
 
 export default class MovingPlatform extends Platform {
@@ -23,7 +24,11 @@ export default class MovingPlatform extends Platform {
 		this.behavior = behavior;
 		this.lastDistance = behavior.vTarget.getDistance(this.vSpawn);
 		this.vVelocity = this.getVelocity();
-		
+		if (this.behavior.shift) {
+			const target = this.behavior.vTarget.getDifference(this.vCoordinates);
+			this.vCoordinates.x += this.behavior.shift * target.x;
+			this.vCoordinates.x += this.behavior.shift * target.y;
+		}
 	}
 
 	update = (timePassed: number) => {
@@ -59,6 +64,7 @@ export default class MovingPlatform extends Platform {
 				this.lastDistance = this.behavior.vTarget.getDistance(this.vSpawn);
 				return;
 			}
+
 			case 'fromEnd': {
 				const buffer = this.vSpawn.getCopy();
 				this.vSpawn = this.behavior.vTarget.getCopy();

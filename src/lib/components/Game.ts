@@ -63,7 +63,7 @@ export class Game {
 
 
 	gameStart = async (): Promise<IGameState> => {
-		this.gameDriver.backgroundImage = await this.assetManager.get('snow-pack/png/bg_snow')
+		this.gameDriver.backgroundImage = await this.assetManager.get('background', 'jpg')
 		await this.spawnPlayer();
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener()

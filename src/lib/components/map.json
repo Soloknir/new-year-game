@@ -106,7 +106,7 @@
 			},
 			"behavior": {
 				"target": {
-					"x": 3100,
+					"x": 3000,
 					"y": 200
 				},
 				"duation": 10,
@@ -127,12 +127,13 @@
 			},
 			"behavior": {
 				"target": {
-					"x": 3600,
+					"x": 3500,
 					"y": 300
 				},
 				"duation": 10,
 				"repeat": "fromEnd",
-				"duration": 10
+				"duration": 10,
+				"shift": 1
 			}
 		},
 		{

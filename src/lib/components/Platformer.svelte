@@ -69,7 +69,8 @@
 						duration: platform.behavior.duration,
 						repeat: platform.behavior.repeat,
 						target: platform.behavior.vTarget.getCoordsObject(),
-						delay: platform.behavior.delay
+						delay: platform.behavior.delay,
+						shift: platform.behavior.shift
 					}
 				}
 
