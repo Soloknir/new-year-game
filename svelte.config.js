@@ -15,7 +15,8 @@ const config = {
 			assets: "docs"
 		}),
 		paths: {
-			base: dev ? '' : '/new-year-game'
+			base: dev ? '' : '/new-year-game',
+			assets: dev ? '' : 'https://soloknir.github.io/new-year-game',
 		}
 	}
 };
