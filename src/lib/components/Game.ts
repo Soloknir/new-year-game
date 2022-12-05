@@ -22,7 +22,7 @@ class AssetManager {
 
 	loadAsset = (path: string, format: 'png' | 'jpg' = 'png') => new Promise<HTMLImageElement>((resolve) => {
 		const image = new Image();
-		image.src = `/assets/${path}.${format}`;
+		image.src = `/new-year-game/assets/${path}.${format}`;
 		image.onload = () => resolve(image);
 	});
 }
