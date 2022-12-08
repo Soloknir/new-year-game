@@ -29,7 +29,6 @@ class ControlsManager {
 	events: { [key: string]: ControlsEvent[] } = {};
 
 	handler = (actionType: string) => (event: any) => {
-		event.preventDefault();
 		this.events[actionType]?.filter(({ keys }) => keys.includes(event.code)).map(({ callback }) => callback());
 	}
 
@@ -93,6 +92,7 @@ export class Game {
 	events: { action: string, event: ControlsEvent }[] = [];
 	playerRespawn = new Vector2D(250, 250);
 	currentSantaSpawn = 0;
+	sound?: HTMLAudioElement;
 	santaSpawnPositions: Vector2D[] = [
 		new Vector2D(2400, 350),
 		new Vector2D(3800, 200),
@@ -117,7 +117,7 @@ export class Game {
 		await this.spawnPlayer();
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener();
-		this.startControlsListening();
+		this.startListeningControls();
 		this.gameDriver.start();
 		return this.gameState;
 	};
@@ -138,6 +138,7 @@ export class Game {
 	spawnPlayer = async () => {
 		let eventListeners: (GameCollisionEvent | GameEdgeEvent)[] = [];
 		if (this.gameState.player) {
+			this.stopListeningControls();
 			eventListeners = [...this.gameState.player.eventListeners];
 			this.gameDriver.despawnObject(this.gameState.player);
 		}
@@ -145,6 +146,7 @@ export class Game {
 		this.gameState.player = new Player(this.playerRespawn.getCopy(), await this.assetManager.get('characters/player'));
 		this.gameState.player.eventListeners = eventListeners;
 		this.gameDriver.spawnObject(this.gameState.player);
+		this.startListeningControls();
 	};
 
 	spawnSanta = async (position: ICoordinates) => {
@@ -225,6 +227,7 @@ export class Game {
 	};
 
 	startMiniGame = () => {
+		!this.sound && this.playMusic();
 		if (this.gameState.santa && this.gameState.player && this.gameDriver.overlay) {
 			delete this.gameState.overlay;
 			this.gameDriver.overlay = null;
@@ -239,7 +242,7 @@ export class Game {
 
 	startMinigameCallback = () => { return; };
 
-	startControlsListening = () => {
+	startListeningControls = () => {
 		if (this.gameState && this.gameState.player) {
 			this.events = [
 				{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.startJumping)},
@@ -259,18 +262,14 @@ export class Game {
 		this.events.forEach(({ event }) => this.controlsManager.removeEventListener(event))
 	}
 
-	// sound = () => {
-	// 	this.sound = document.createElement("audio");
-	// 	this.sound.src = src;
-	// 	this.sound.setAttribute("preload", "auto");
-	// 	this.sound.setAttribute("controls", "none");
-	// 	this.sound.style.display = "none";
-	// 	document.body.appendChild(this.sound);
-	// 	this.play = function () {
-	// 		this.sound.play();
-	// 	}
-	// 	this.stop = function () {
-	// 		this.sound.pause();
-	// 	}
-	// }
+	playMusic = () => {
+		this.sound = document.createElement("audio");
+		this.sound.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/music/cristmas_music.mp3`;
+		this.sound.setAttribute("preload", "auto");
+		this.sound.setAttribute("controls", "none");
+		this.sound.setAttribute("loop", "true");
+		this.sound.style.display = "none";
+		document.body.appendChild(this.sound);
+		this.sound.play();
+	}
 }

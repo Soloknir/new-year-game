@@ -48,7 +48,7 @@
 	function handleMinigameEnd() {
 		minigame = false;
 		minigameLevel++;
-		game.startControlsListening();
+		game.startListeningControls();
 	}
 </script>
 
