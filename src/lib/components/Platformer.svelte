@@ -29,6 +29,7 @@
 			await game.loadMap();
 			game.gameStart();
 			game.startMinigameCallback = () => {
+				game.stopListeningControls();
 				if (minigameLevel < minigames.length) {
 					minigame = true;
 					if (game.gameState.player) {
@@ -41,49 +42,13 @@
 				}
 			};
 
-			window.addEventListener('keydown', handleKeyDown);
-			window.addEventListener('keyup', handleKeyUp);
 		}
 	});
 
 	function handleMinigameEnd() {
 		minigame = false;
 		minigameLevel++;
-	}
-
-	function handleKeyDown(event: KeyboardEvent) {
-		if (game.gameState && game.gameState.player && !minigame) {
-			switch (event.code) {
-				case 'KeyW':
-					game.gameState.player.startJumping();
-					break;
-				case 'KeyD':
-					game.gameState.player.startMoveRight();
-					break;
-				case 'KeyA':
-					game.gameState.player.startMoveLeft();
-					break;
-				case 'Space':
-					game.startMiniGame();
-					break;
-			}
-		}
-	}
-
-	function handleKeyUp(event: KeyboardEvent) {
-		if (game.gameState && game.gameState.player && !minigame) {
-			switch (event.code) {
-				case 'KeyW':
-					game.gameState.player.stopJumping();
-					break;
-				case 'KeyD':
-					game.gameState.player.stopMoveRight();
-					break;
-				case 'KeyA':
-					game.gameState.player.stopMoveLeft();
-					break;
-			}
-		}
+		game.startControlsListening();
 	}
 </script>
 

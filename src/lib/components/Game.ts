@@ -9,11 +9,58 @@ import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 import MovingPlatform from './Objects/MovingPlatform';
 import Water from './Objects/Water';
 import Overlay from './Objects/Overlay';
+import { v4 as uuid } from 'uuid';
 
+export class ControlsEvent {
+	id: string;
+	keys: string[];
+	callback: () => void;
+
+	handler?: any;
+
+	constructor(keys: string[], callback: () => void) {
+		this.id = uuid();
+		this.keys = keys;
+		this.callback = callback;
+	}
+}
+
+class ControlsManager {
+	events: { [key: string]: ControlsEvent[] } = {};
+
+	handler = (actionType: string) => (event: any) => {
+		event.preventDefault();
+		this.events[actionType]?.filter(({ keys }) => keys.includes(event.code)).map(({ callback }) => callback());
+	}
+
+	addEventListener = (action: string, event: ControlsEvent) => {
+		this.events[action] = this.events[action] ? [...this.events[action], event] : [event];
+		event.handler = this.handler(action)
+		window.addEventListener(action, event.handler);
+	}
+
+	removeAllListeners = () => {
+		Object.keys(this.events).forEach((action) => {
+			this.events[action].forEach((event) => window.removeEventListener(action, event.handler))
+		});
+
+		this.events = {};
+	}
+
+	removeEventListener = (event: ControlsEvent) => {
+		Object.keys(this.events).forEach((action) => {
+			const index = this.events[action].findIndex(({ id }) => event.id === id);
+			if (index > -1) {
+				this.events[action].splice(index, 1);
+				window.removeEventListener(action, event.handler);
+				return;
+			}	
+		});
+	}
+}
 
 class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
-	
 	get = async (path: string, format: 'png' | 'jpg' = 'png') => this.assets[path] || await this.loadAsset(path, format);
 
 	loadAssets = async (paths: string[]) => {
@@ -28,7 +75,6 @@ class AssetManager {
 	});
 }
 
-
 export interface IGameState {
 	isGameOver: boolean;
 	level: number;
@@ -41,8 +87,10 @@ export class Game {
 	context: CanvasRenderingContext2D;
 	viewPortSize: { width: number; height: number };
 	gameDriver: GameDriver;
+	controlsManager: ControlsManager;
 	assetManager: AssetManager;
-	
+
+	events: { action: string, event: ControlsEvent }[] = [];
 	playerRespawn = new Vector2D(250, 250);
 	currentSantaSpawn = 0;
 	santaSpawnPositions: Vector2D[] = [
@@ -60,15 +108,16 @@ export class Game {
 		this.context = context;
 		this.viewPortSize = viewPortSize;
 		this.gameDriver = new GameDriver(context, viewPortSize);
+		this.controlsManager = new ControlsManager();
 		this.assetManager = new AssetManager();
 	}
-
 
 	gameStart = async (): Promise<IGameState> => {
 		this.gameDriver.backgroundImage = await this.assetManager.get('background', 'jpg')
 		await this.spawnPlayer();
 		this.addSantaMeetingEventListener();
-		this.addGameOverEventListener()
+		this.addGameOverEventListener();
+		this.startControlsListening();
 		this.gameDriver.start();
 		return this.gameState;
 	};
@@ -113,7 +162,7 @@ export class Game {
 
 		const water = new Water(
 			new Vector2D(0, -400),
-			{ width: 2 * this.viewPortSize.width, height: 400},
+			{ width: 2 * this.viewPortSize.width, height: 400 },
 			{ head, body }
 		);
 
@@ -134,13 +183,13 @@ export class Game {
 			this.assetManager.get(`platforms/${id}/head`),
 			this.assetManager.get(`platforms/${id}/body`)
 		]);
- 
+
 		const platform = new Platform(
 			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
 			size ? size : { width: 0, height: 0 },
 			{ head, body }
 		);
-	
+
 		this.gameDriver.spawnObject(platform);
 		return platform;
 	};
@@ -154,7 +203,7 @@ export class Game {
 
 		const platform = new MovingPlatform(
 			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
-			behavior ? { ...behavior, vTarget: (new Vector2D()).setByCoordsObject(behavior.target)} : { vTarget: new Vector2D(), duration: 1, repeat: 'none' },
+			behavior ? { ...behavior, vTarget: (new Vector2D()).setByCoordsObject(behavior.target) } : { vTarget: new Vector2D(), duration: 1, repeat: 'none' },
 			size ? size : { width: 0, height: 0 },
 			{ head, body }
 		);
@@ -188,7 +237,40 @@ export class Game {
 		}
 	}
 
-
 	startMinigameCallback = () => { return; };
 
+	startControlsListening = () => {
+		if (this.gameState && this.gameState.player) {
+			this.events = [
+				{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.startJumping)},
+				{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.startMoveRight)},
+				{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.startMoveLeft)},
+				{ action: 'keydown', event: new ControlsEvent(['Space'], this.startMiniGame)},
+				{ action: 'keyup', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.stopJumping)},
+				{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.stopMoveRight)},
+				{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.stopMoveLeft)},
+			];
+
+			this.events.map(({ action, event }) => this.controlsManager.addEventListener(action, event));
+		}
+	}
+
+	stopListeningControls = () => {
+		this.events.forEach(({ event }) => this.controlsManager.removeEventListener(event))
+	}
+
+	// sound = () => {
+	// 	this.sound = document.createElement("audio");
+	// 	this.sound.src = src;
+	// 	this.sound.setAttribute("preload", "auto");
+	// 	this.sound.setAttribute("controls", "none");
+	// 	this.sound.style.display = "none";
+	// 	document.body.appendChild(this.sound);
+	// 	this.play = function () {
+	// 		this.sound.play();
+	// 	}
+	// 	this.stop = function () {
+	// 		this.sound.pause();
+	// 	}
+	// }
 }
