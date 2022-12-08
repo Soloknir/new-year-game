@@ -24,7 +24,6 @@
 
 		if (context) {
 			const rect = canvas.getBoundingClientRect();
-
 			game = new Game(context, { width: rect.width, height: rect.height });
 
 			await game.loadMap();

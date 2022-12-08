@@ -10,6 +10,7 @@ import MovingPlatform from './Objects/MovingPlatform';
 import Water from './Objects/Water';
 import Overlay from './Objects/Overlay';
 
+
 class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
 	
@@ -22,10 +23,11 @@ class AssetManager {
 
 	loadAsset = (path: string, format: 'png' | 'jpg' = 'png') => new Promise<HTMLImageElement>((resolve) => {
 		const image = new Image();
-		image.src = `/new-year-game/assets/${path}.${format}`;
+		image.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/${path}.${format}`;
 		image.onload = () => resolve(image);
 	});
 }
+
 
 export interface IGameState {
 	isGameOver: boolean;

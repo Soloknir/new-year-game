@@ -9,12 +9,7 @@
   // each even row is 8 bubbles long and each odd row is 7 bubbles long.
   // the level consists of 4 rows of bubbles of 4 colors: red, orange,
   // green, and yellow
-  const level1 = [
-    ['R','R','Y','Y','B','B','G','G'],
-    ['R','R','Y','Y','B','B','G'],
-    ['B','B','G','G','R','R','Y','Y'],
-    ['B','G','G','R','R','Y','Y']
-  ];
+  const level: any = [];
 
   // create a mapping between color short code (R, G, B, Y) and color name
   const colorMap = {
@@ -24,11 +19,24 @@
     'Y': 'yellow'
   };
 
+  const colorsKeys = Object.keys(colorMap);
   const colors = Object.values(colorMap);
   const bubbleGap = 1;
   const wallSize: any = 4;
   const bubbles: any[] = [];
   let particles: any[] = [];
+  
+  prepareLevel();
+  function prepareLevel() {
+    for(let i = 0; i < 5; i++) {
+      const rowLength = i % 2 === 0 ? 8 : 7;
+      const row = [];
+      for(let j = 0; j < rowLength; j++) {
+        row.push(colorsKeys[getRandomInt(0, colors.length - 1)]);
+      }
+      level.push(row);
+    }
+  }
 
   // helper function to convert deg to radians
   function degToRad(deg: number) {
@@ -116,7 +124,7 @@
 
   // get all bubbles that touch the passed in bubble
   function getNeighbors(bubble: any) {
-    const neighbors = [];
+    const neighbors: any[] = [];
 
     // check each of the 6 directions by "moving" the bubble by a full
     // grid in each of the 6 directions (60 degree intervals)
@@ -223,7 +231,7 @@
     for (let col = 0; col < (row % 2 === 0 ? 8 : 7); col++) {
       // if the level has a bubble at the location, create an active
       // bubble rather than an inactive one
-      const color = level1[row]?.[col];
+      const color = level[row]?.[col];
       createBubble(col * grid, row * grid, colorMap[color]);
     }
   }

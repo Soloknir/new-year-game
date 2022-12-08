@@ -2,7 +2,7 @@
 	"name": "new-year-game",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "set NODE_ENV=dev && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"test": "playwright test",
