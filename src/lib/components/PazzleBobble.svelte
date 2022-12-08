@@ -421,34 +421,40 @@
 
 
   // listen for keyboard events to move the fire arrow
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.code === 'ArrowLeft') {
-      shootDir = -1;
-    }
-    else if (e.code === 'ArrowRight') {
-      shootDir = 1;
-    }
-
-    // if the current bubble is not moving we can launch it
-    if (e.code === 'Space' &&  curBubble.dx === 0 && curBubble.dy === 0) {
-      // convert an angle to x/y
-      curBubble.dx = Math.sin(shootDeg) * curBubble.speed;
-      curBubble.dy = -Math.cos(shootDeg) * curBubble.speed;
+  const handleKeyDown = (event: KeyboardEvent) => {
+    switch(event.code) {
+      case 'KeyA':
+      case 'ArrowLeft':
+        shootDir = -1;  
+        break;
+      case 'KeyD':
+      case 'ArrowRight':
+        shootDir = 1;  
+        break;
+      case 'Space':
+        // convert an angle to x/y
+        if (curBubble.dx === 0 && curBubble.dy === 0) {
+          curBubble.dx = Math.sin(shootDeg) * curBubble.speed;
+          curBubble.dy = -Math.cos(shootDeg) * curBubble.speed;
+        }
+        break;
     }
   }
 
   // listen for keyboard events to stop moving the fire arrow if key is
   // released
-  const handleKeyUp = (e: KeyboardEvent) => {
-    if (
-      // only reset shoot dir if the released key is also the current
-      // direction of movement. otherwise if you press down both arrow
-      // keys at the same time and then release one of them, the arrow
-      // stops moving even though you are still pressing a key
-      (e.code === 'ArrowLeft' && shootDir === -1) ||
-      (e.code === 'ArrowRight' && shootDir === 1)
-    ) {
-      shootDir = 0;
+  const handleKeyUp = (event: KeyboardEvent) => {
+    // only reset shoot dir if the released key is also the current
+    // direction of movement. otherwise if you press down both arrow
+    // keys at the same time and then release one of them, the arrow
+    // stops moving even though you are still pressing a key
+    switch(event.code) {
+      case 'KeyA':
+      case 'KeyD':
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        shootDir = 0;
+        break;
     }
   };
 
