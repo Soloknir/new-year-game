@@ -9,70 +9,11 @@ import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 import MovingPlatform from './Objects/MovingPlatform';
 import Water from './Objects/Water';
 import Overlay from './Objects/Overlay';
-import { v4 as uuid } from 'uuid';
+import AssetManager from './Helpers/AssetManager';
+import { ControlsEvent, ControlsManager } from './Helpers/ControlsManager';
 
-export class ControlsEvent {
-	id: string;
-	keys: string[];
-	callback: () => void;
 
-	handler?: any;
 
-	constructor(keys: string[], callback: () => void) {
-		this.id = uuid();
-		this.keys = keys;
-		this.callback = callback;
-	}
-}
-
-class ControlsManager {
-	events: { [key: string]: ControlsEvent[] } = {};
-
-	handler = (actionType: string) => (event: any) => {
-		this.events[actionType]?.filter(({ keys }) => keys.includes(event.code)).map(({ callback }) => callback());
-	}
-
-	addEventListener = (action: string, event: ControlsEvent) => {
-		this.events[action] = this.events[action] ? [...this.events[action], event] : [event];
-		event.handler = this.handler(action)
-		window.addEventListener(action, event.handler);
-	}
-
-	removeAllListeners = () => {
-		Object.keys(this.events).forEach((action) => {
-			this.events[action].forEach((event) => window.removeEventListener(action, event.handler))
-		});
-
-		this.events = {};
-	}
-
-	removeEventListener = (event: ControlsEvent) => {
-		Object.keys(this.events).forEach((action) => {
-			const index = this.events[action].findIndex(({ id }) => event.id === id);
-			if (index > -1) {
-				this.events[action].splice(index, 1);
-				window.removeEventListener(action, event.handler);
-				return;
-			}	
-		});
-	}
-}
-
-class AssetManager {
-	assets: { [key: string]: HTMLImageElement } = {};
-	get = async (path: string, format: 'png' | 'jpg' = 'png') => this.assets[path] || await this.loadAsset(path, format);
-
-	loadAssets = async (paths: string[]) => {
-		const assets = await Promise.all(paths.map((path: string) => this.loadAsset(path)));
-		paths.map((path, index) => this.assets[path] = assets[index]);
-	}
-
-	loadAsset = (path: string, format: 'png' | 'jpg' = 'png') => new Promise<HTMLImageElement>((resolve) => {
-		const image = new Image();
-		image.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/${path}.${format}`;
-		image.onload = () => resolve(image);
-	});
-}
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -264,10 +205,11 @@ export class Game {
 
 	playMusic = () => {
 		this.sound = document.createElement("audio");
-		this.sound.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/music/cristmas_music.mp3`;
+		this.sound.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/music/holiday_game_theme.mp3`;
 		this.sound.setAttribute("preload", "auto");
 		this.sound.setAttribute("controls", "none");
 		this.sound.setAttribute("loop", "true");
+		this.sound.volume = 0.05;
 		this.sound.style.display = "none";
 		document.body.appendChild(this.sound);
 		this.sound.play();
