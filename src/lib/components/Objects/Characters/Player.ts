@@ -1,4 +1,4 @@
-import { Vector2D } from "../../Vector";
+import { Vector2D } from "../../Helpers/Vector";
 import { G } from "../../Constants";
 import { GameObject, type IColliding, type IRectangular, type ISupportPhisics } from "../GameObject";
 

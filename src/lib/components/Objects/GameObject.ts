@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { detectObjectIntersect } from '../Helpers/Intersections';
-import type { Vector2D } from '../Vector';
+import type { Vector2D } from '../Helpers/Vector';
 
 
 interface IGameEvent {

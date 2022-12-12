@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, onDestroy } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import { Tetris } from "./MiniGames/Tetris";
   
   const dispatch = createEventDispatcher();
@@ -7,9 +7,6 @@
 
   onMount(() => {
     const context = canvas.getContext('2d');
-    if (context) {
-      new Tetris(context, () => dispatch('done'));
-    }
   });
 </script>
 

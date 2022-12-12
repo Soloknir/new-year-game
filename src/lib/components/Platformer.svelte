@@ -8,15 +8,6 @@
 	let game: Game;
 	let canvas: HTMLCanvasElement;
 
-	let minigame = false;
-	let winGame = false;
-
-	const minigames = [
-		PazzleBobble,
-		FlipMemory,
-		Tetris
-	];
-
 	let minigameLevel = 0;
 
 	onMount(async () => {
@@ -24,46 +15,16 @@
 
 		if (context) {
 			const rect = canvas.getBoundingClientRect();
-			game = new Game(context, { width: rect.width, height: rect.height });
-
-			await game.loadMap();
-			game.gameStart();
-			game.startMinigameCallback = () => {
-				if (minigameLevel < minigames.length) {
-					minigame = true;
-					if (game.gameState.player) {
-						game.gameState.player.stopJumping();
-						game.gameState.player.stopMoveRight();
-						game.gameState.player.stopMoveLeft();
-					}
-				} else {
-					winGame = true;
-				}
-			};
-
+			game = new Game(context, rect);
 		}
 	});
-
-	function handleMinigameEnd() {
-		minigame = false;
-		minigameLevel++;
-		game.startListeningControls();
-	}
 </script>
 
 <div class="container">
-	{#if winGame}
-		<h1>Вы победили! С Новым Годом!</h1>
-	{/if}
-	{#if !winGame && minigame}
-		<svelte:component this="{minigames[minigameLevel]}" on:done="{handleMinigameEnd}"/>
-		<button on:click={handleMinigameEnd}>Skip minigame</button>
-	{/if}
 	<canvas
-		style:display={minigame || winGame ? 'none' : 'block'}
 		bind:this={canvas}
-		width={1024}
-		height={512}
+		width={1320}
+		height={640}
 	>
 		Your browser does not support the HTML5 canvas tag.
 	</canvas>

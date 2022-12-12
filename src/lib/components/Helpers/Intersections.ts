@@ -1,5 +1,5 @@
 import type Circle from "../Objects/Circle";
-import type { Vector2D } from "../Vector";
+import type { Vector2D } from "./Vector";
 import type { RectangularType, RoundType } from "../Objects/Types";
 import { isInstanceOfRectangular, isInstanceOfRound, type GameObject } from "../Objects/GameObject";
 

@@ -3,44 +3,42 @@ import MapJson from './map.json';
 import type { ICoordinates, IRectangleSize } from './Objects/Interfaces';
 import Player from './Objects/Characters/Player';
 import Platform from './Objects/Platform';
-import { Vector2D } from './Vector';
+import { Vector2D } from './Helpers/Vector';
 import Santa from './Objects/Characters/Santa';
 import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 import MovingPlatform from './Objects/MovingPlatform';
 import Water from './Objects/Water';
 import Overlay from './Objects/Overlay';
-import AssetManager from './Helpers/AssetManager';
-import { ControlsEvent, ControlsManager } from './Helpers/ControlsManager';
+import AssetsManager, { type IUseAssets } from './Helpers/AssetManager';
+import ControlsManager, { ControlsEvent, type IUseControls } from './Helpers/ControlsManager';
 import { SoundManager } from './Helpers/SoundManager';
+import { Tetris } from './MiniGames/Tetris';
+import { MainMenu } from './MainMenu';
 
-export interface IUseControls {
-	controlsManager: ControlsManager;
-	controlsEvents: { action: string, event: ControlsEvent }[];
-	initControlsListeners: () => void;
-	startListeningControls: () => void;
-	stopListeningControls: () => void;
-}
+
 
 export interface IGameState {
 	isGameOver: boolean;
+	isGamePaused: boolean;
 	level: number;
 	player?: Player;
 	santa?: Santa;
 	overlay?: Overlay;
 }
 
-export class Game implements IUseControls {
+export class Game implements IUseControls, IUseAssets {
 	context: CanvasRenderingContext2D;
-	viewPortSize: { width: number; height: number };
+	canvasBoundingRect: DOMRect;
+
 	gameDriver: GameDriver;
-	assetManager: AssetManager;
+	mainMenu: MainMenu;
+	assetsManager: AssetsManager;
 	soundManager: SoundManager;
 	controlsManager: ControlsManager;
 	controlsEvents: { action: string, event: ControlsEvent }[] = [];
 	
 	playerRespawn = new Vector2D(250, 250);
 	currentSantaSpawn = 0;
-	sound?: HTMLAudioElement;
 	santaSpawnPositions: Vector2D[] = [
 		new Vector2D(2400, 350),
 		new Vector2D(3800, 200),
@@ -49,26 +47,32 @@ export class Game implements IUseControls {
 
 	gameState: IGameState = {
 		isGameOver: false,
-		level: 1,
+		isGamePaused: false,
+		level: 0,
 	}
 
-	constructor(context: CanvasRenderingContext2D, viewPortSize: IRectangleSize) {
+	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect) {
 		this.context = context;
-		this.viewPortSize = viewPortSize;
+		this.canvasBoundingRect = canvasBoundingRect;
 		
-		this.gameDriver = new GameDriver(context, viewPortSize);
-
-		this.controlsManager = new ControlsManager();
-		this.assetManager = new AssetManager();
+		this.gameDriver = new GameDriver(context, canvasBoundingRect);
+		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.resume);
+		this.controlsManager = ControlsManager.Instance;
+		this.assetsManager = new AssetsManager();
 		this.soundManager = new SoundManager();
+
+		this.gameStart();
 	}
+
 
 	gameStart = async (): Promise<IGameState> => {
-		this.gameDriver.backgroundImage = await this.assetManager.get('background/bg-game', 'jpg')
-		await this.spawnPlayer();
+		await this.loadAssets()
+
+		this.gameDriver.backgroundImage = this.assetsManager.get('background/bg-game')
+		this.loadMap();
+		this.spawnPlayer();
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener();
-		this.startListeningControls();
 		this.gameDriver.start();
 	
 		return this.gameState;
@@ -87,7 +91,7 @@ export class Game implements IUseControls {
 		])
 	};
 
-	spawnPlayer = async () => {
+	spawnPlayer = () => {
 		let eventListeners: (GameCollisionEvent | GameEdgeEvent)[] = [];
 		if (this.gameState.player) {
 			this.stopListeningControls();
@@ -95,30 +99,29 @@ export class Game implements IUseControls {
 			this.gameDriver.despawnObject(this.gameState.player);
 		}
 
-		this.gameState.player = new Player(this.playerRespawn.getCopy(), await this.assetManager.get('characters/player'));
+		this.gameState.player = new Player(this.playerRespawn.getCopy(), this.assetsManager.get('characters/player'));
 		this.gameState.player.eventListeners = eventListeners;
 		this.gameDriver.spawnObject(this.gameState.player);
 		this.initControlsListeners();
 		this.startListeningControls();
+		console.log(this.controlsManager);
 	};
 
-	spawnSanta = async (position: ICoordinates) => {
+	spawnSanta = (position: ICoordinates) => {
 		this.gameState.santa && this.gameDriver.despawnObject(this.gameState.santa);
-		this.gameState.santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), await this.assetManager.get('characters/santa'));
+		this.gameState.santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters/santa'));
 		this.gameDriver.spawnObject(this.gameState.santa);
 		return this.gameState.santa;
 	}
 
-	spawnWater = async () => {
-		const [head, body]: HTMLImageElement[] = await Promise.all([
-			this.assetManager.get('water/head'),
-			this.assetManager.get('water/body')
-		]);
-
+	spawnWater = () => {
 		const water = new Water(
 			new Vector2D(0, -400),
-			{ width: 2 * this.viewPortSize.width, height: 400 },
-			{ head, body }
+			{ width: 2 * this.canvasBoundingRect.width, height: 400 },
+			{
+				head: this.assetsManager.get('water/head'),
+				body: this.assetsManager.get('water/body')
+			}
 		);
 
 		this.gameDriver.spawnObject(water);
@@ -128,21 +131,19 @@ export class Game implements IUseControls {
 	spawnOverlay = async () => {
 		this.gameState.overlay = this.gameDriver.overlay = new Overlay(
 			new Vector2D(0, 0),
-			this.viewPortSize,
-			await this.assetManager.get('dialog-overlay', 'jpg')
+			this.canvasBoundingRect,
+			this.assetsManager.get('dialog-overlay')
 		);
 	};
 
-	spawnPlatform = async (id: string, coordinates?: ICoordinates, size?: IRectangleSize) => {
-		const [head, body]: HTMLImageElement[] = await Promise.all([
-			this.assetManager.get(`platforms/${id}/head`),
-			this.assetManager.get(`platforms/${id}/body`)
-		]);
-
+	spawnPlatform = (id: string, coordinates?: ICoordinates, size?: IRectangleSize) => {
 		const platform = new Platform(
 			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
 			size ? size : { width: 0, height: 0 },
-			{ head, body }
+			{
+				head: this.assetsManager.get(`platforms/base/head`),
+				body: this.assetsManager.get(`platforms/base/body`)
+			}
 		);
 
 		this.gameDriver.spawnObject(platform);
@@ -150,17 +151,16 @@ export class Game implements IUseControls {
 	};
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	spawnMovingPlatform = async (id: string, coordinates?: ICoordinates, behavior?: any, size?: IRectangleSize) => {
-		const [head, body]: HTMLImageElement[] = await Promise.all([
-			this.assetManager.get(`platforms/${id}/head`),
-			this.assetManager.get(`platforms/${id}/body`)
-		]);
+	spawnMovingPlatform = (id: string, coordinates?: ICoordinates, behavior?: any, size?: IRectangleSize) => {
 
 		const platform = new MovingPlatform(
 			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
 			behavior ? { ...behavior, vTarget: (new Vector2D()).setByCoordsObject(behavior.target) } : { vTarget: new Vector2D(), duration: 1, repeat: 'none' },
 			size ? size : { width: 0, height: 0 },
-			{ head, body }
+			{
+				head: this.assetsManager.get(`platforms/base/head`),
+				body: this.assetsManager.get(`platforms/base/body`)
+			}
 		);
 
 		this.gameDriver.spawnObject(platform);
@@ -190,11 +190,41 @@ export class Game implements IUseControls {
 			}
 
 			this.stopListeningControls();
-			this.startMinigameCallback();
+			this.gameDriver.pause();
+
+			switch(this.gameState.level++) {
+				case 0:
+					new Tetris(this.context, this.canvasBoundingRect, this.resume);
+					break;
+			}
 		}
 	}
 
-	startMinigameCallback = () => { return; };
+	pause = () => {
+		if (!this.gameState.isGamePaused) {
+			this.gameState.isGamePaused = true;
+			this.stopListeningControls();
+			this.gameDriver.pause();
+			this.mainMenu.open();
+		}
+	}
+
+	resume = () => {
+		this.gameState.isGamePaused = false;
+		this.startListeningControls();
+		this.gameDriver.start();
+	}
+
+	loadAssets = async () => await this.assetsManager.loadAssets([
+		{ path: 'background/bg-game', format: 'jpg' },
+		{ path: 'characters/player', format: 'png' },
+		{ path: 'characters/santa', format: 'png' },
+		{ path: 'water/head', format: 'png' },
+		{ path: 'water/body', format: 'png' },
+		{ path: 'dialog-overlay', format: 'jpg' },
+		{ path: 'platforms/base/head', format: 'png' },
+		{ path: 'platforms/base/body', format: 'png' },
+	]);
 
 	initControlsListeners = () => {
 		if (!this.gameState.player) return;
@@ -204,14 +234,16 @@ export class Game implements IUseControls {
 			{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.startMoveRight) },
 			{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.startMoveLeft) },
 			{ action: 'keydown', event: new ControlsEvent(['Space'], this.startMiniGame) },
+			{ action: 'keydown', event: new ControlsEvent(['Escape'], this.pause) },
 			{ action: 'keyup', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.stopJumping) },
 			{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.stopMoveRight) },
 			{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.stopMoveLeft) },
 		];
 	}
 
-	startListeningControls = () => this.controlsEvents
-		.map(({ action, event }) => this.controlsManager.addEventListener(action, event));
+	startListeningControls = () => {
+		this.controlsEvents.map(({ action, event }) => this.controlsManager.addEventListener(action, event))
+	};
 
 	stopListeningControls = () => this.controlsEvents
 		.map(({ event }) => this.controlsManager.removeEventListener(event))

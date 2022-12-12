@@ -4,10 +4,11 @@ import type { IRectangleSize } from "./Objects/Interfaces";
 import MovingPlatform from "./Objects/MovingPlatform";
 import type Overlay from "./Objects/Overlay";
 import Platform from "./Objects/Platform";
-import { Vector2D } from "./Vector";
+import { Vector2D } from "./Helpers/Vector";
 
 export default class GameDriver {
 	context: CanvasRenderingContext2D;
+	rAF: number | null = null;
 	vViewCoordinates = new Vector2D();
 	viewPortWidth: number;
 	viewPortHeight: number;
@@ -26,10 +27,13 @@ export default class GameDriver {
 		this.viewPortHeight = viewPortSize.height;
 	}
 
-	start = () => window.requestAnimationFrame(this.gameLoop);
+	start = () => this.rAF = window.requestAnimationFrame(this.loop);
+	pause = () => this.rAF && window.cancelAnimationFrame(this.rAF);
 
-	gameLoop = (timeStamp: number) => {
+	loop = (timeStamp: number) => {
+		this.rAF = requestAnimationFrame(this.loop);
 		if (!this.overlay) {
+
 			this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
 			this.time += this.secondsPassed;
 			this.oldTimeStamp = timeStamp;
@@ -47,8 +51,6 @@ export default class GameDriver {
 		} else {
 			this.overlay.draw(this.context);
 		}
-	
-		window.requestAnimationFrame(this.gameLoop);
 	}
 
 	drawFps = (timeStamp: number) => {

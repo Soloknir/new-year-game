@@ -1,4 +1,4 @@
-import { Vector2D } from "../Vector";
+import { Vector2D } from "../Helpers/Vector";
 import type { IRectangleSize } from "./Interfaces";
 import Platform, { type ICompositeTexture } from "./Platform";
 

@@ -1,6 +1,4 @@
-
-import type { IUseControls } from "../Game";
-import { ControlsEvent, ControlsManager } from "../Helpers/ControlsManager";
+import ControlsManager, { ControlsEvent, type IUseControls } from "../Helpers/ControlsManager";
 
 interface IBubble {
 	x: number,
@@ -60,7 +58,7 @@ export class Bubble implements IUseControls {
 
 	constructor(context: CanvasRenderingContext2D, endGameCallback: () => void) {
 		this.context = context;
-		this.controlsManager = new ControlsManager();
+		this.controlsManager = ControlsManager.Instance;
 		this.endGameCallback = endGameCallback;
 
 		this.initControlsListeners();
@@ -437,6 +435,10 @@ export class Bubble implements IUseControls {
 		this.context.fill();
 	}
 
+	release = () => {
+		this.rAF && window.cancelAnimationFrame(this.rAF);
+		this.stopListeningControls();
+	}
 
 	initControlsListeners = () => {
 		this.controlsEvents = [

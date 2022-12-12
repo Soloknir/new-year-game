@@ -1,6 +1,6 @@
-import type { IUseControls } from "../Game";
-import AssetManager from "../Helpers/AssetManager";
-import { ControlsEvent, ControlsManager } from "../Helpers/ControlsManager";
+import AssetsManager, { type IUseAssets } from "../Helpers/AssetManager";
+import ControlsManager, { ControlsEvent, type IUseControls } from "../Helpers/ControlsManager";
+import type { IRectangleSize } from "../Objects/Interfaces";
 
 type TetrominoName = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L';
 enum TetrominoAssets {
@@ -20,29 +20,26 @@ interface ITetromino {
 	col: number        // current col
 }
 
-export class Tetris implements IUseControls {
+export class Tetris implements IUseControls, IUseAssets {
 	context: CanvasRenderingContext2D;
+	rAF: number | null = null;
 
 	grid = 32;
 	tetrominoSequence: TetrominoName[] = [];
 	playfield: (TetrominoName | null)[][] = [];
-	assetManager: AssetManager;
-	loadedAssets: { [name: string]: HTMLImageElement} = {};
+
+	assetsManager: AssetsManager;
+
 	controlsEvents: { action: string, event: ControlsEvent }[] = [];
 	controlsManager: ControlsManager;
 
 	count = 0;
 	tetromino: ITetromino;
-	rAF: number | null = null;  // keep track of the animation frame so we can cancel it
 	gameOver = false;
 	target = 10;
 	score = 0;
 
-	size = {
-		width: 320,
-		height: 640
-	}
-
+	size: IRectangleSize;
 	tetrominos = {
 		'I': [
 			[0, 0, 0, 0],
@@ -83,19 +80,23 @@ export class Tetris implements IUseControls {
 
 	endGameCallback: () => void;
 
-	constructor(context: CanvasRenderingContext2D, endGameCallback: () => void) {
+	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect, endGameCallback: () => void) {
 		this.context = context;
-		this.assetManager = new AssetManager();
-		this.controlsManager = new ControlsManager();
+		this.size = canvasBoundingRect;
 		this.endGameCallback = endGameCallback;
+		
+		this.assetsManager = new AssetsManager();
+		this.controlsManager = ControlsManager.Instance;
 
-		this.initControlsListeners();
-		this.startListeningControls();
 		this.init();
 		this.tetromino = this.getNextTetromino();
 	}
 
+
 	init = async () => {
+		this.initControlsListeners();
+		this.startListeningControls();
+
 		for (let row = -2; row < 20; row++) {
 			this.playfield[row] = [];
 
@@ -104,8 +105,7 @@ export class Tetris implements IUseControls {
 			}
 		}
 
-		await Promise.all(Object.keys(TetrominoAssets).map(async (name) => {
-			this.loadedAssets[name] = await this.assetManager.get(TetrominoAssets[name as TetrominoName])}));
+		await this.loadAssets();
 		this.rAF = requestAnimationFrame(this.loop);
 	}
 
@@ -238,7 +238,8 @@ export class Tetris implements IUseControls {
 	// game loop
 	loop = () => {
 		this.rAF = requestAnimationFrame(this.loop);
-		this.context.clearRect(0, 0, this.size.width, this.size.height);
+		const xShift = this.size.width / 2 - 160;
+		this.context.clearRect(xShift, 0, 320, this.size.height);
 
 		// draw the playfield
 		for (let row = 0; row < 20; row++) {
@@ -247,7 +248,7 @@ export class Tetris implements IUseControls {
 					const name = this.playfield[row][col];
 					if (name) {
 						// drawing 1 px smaller than the grid creates a grid effect
-						this.context.drawImage(this.loadedAssets[name], col * this.grid, row * this.grid, this.grid - 1, this.grid - 1);
+						this.context.drawImage(this.assetsManager.get(TetrominoAssets[name]), col * this.grid + xShift, row * this.grid, this.grid - 1, this.grid - 1);
 					}
 				}
 			}
@@ -273,19 +274,29 @@ export class Tetris implements IUseControls {
 				for (let col = 0; col < this.tetromino.matrix[row].length; col++) {
 					if (this.tetromino.matrix[row][col]) {
 						// drawing 1 px smaller than the grid creates a grid effect
-						this.context.drawImage(this.loadedAssets[this.tetromino.name], (this.tetromino.col + col) * this.grid, (this.tetromino.row + row) * this.grid, this.grid - 1, this.grid - 1);
+						this.context.drawImage(this.assetsManager.get(TetrominoAssets[this.tetromino.name]), (this.tetromino.col + col) * this.grid + xShift, (this.tetromino.row + row) * this.grid, this.grid - 1, this.grid - 1);
 					}
 				}
 			}
 		}
 	}
+
+	release = () => {
+		this.rAF && window.cancelAnimationFrame(this.rAF);
+		this.stopListeningControls();
+		this.endGameCallback();
+	}
  
+	loadAssets = async () => await this.assetsManager
+		.loadAssets(Object.values(TetrominoAssets).map(path => ({ path, format: 'png' })));
+
 	initControlsListeners = () => {
 		this.controlsEvents = [
 			{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.handleRotate) },
 			{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.handleMoveRight) },
 			{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.handleMoveLeft) },
 			{ action: 'keydown', event: new ControlsEvent(['ArrowDown', 'KeyS'], this.handleMoveDown) },
+			{ action: 'keydown', event: new ControlsEvent(['Escape'], this.release) },
 		];
 	}
 

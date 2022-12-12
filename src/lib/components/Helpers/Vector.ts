@@ -1,4 +1,4 @@
-import type { ICoordinates } from "./Objects/Interfaces";
+import type { ICoordinates } from "../Objects/Interfaces";
 
 export class Vector2D {
 	x: number;
