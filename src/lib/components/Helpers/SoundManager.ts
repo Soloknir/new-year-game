@@ -1,3 +1,5 @@
+import { BASE_URL } from "../Constants";
+
 export class SoundManager {
 	sounds: { [key: string]: HTMLAudioElement } = {};
 	get = async (path: string, format: 'mp3' | 'wav' = 'mp3') => this.sounds[path] || await this.loadSound(path, format);
@@ -8,16 +10,12 @@ export class SoundManager {
 	}
 
 	loadSound = (path: string, format: 'mp3' | 'wav' = 'mp3') => new Promise<HTMLAudioElement>((resolve) => {
-		const sound = document.createElement("audio"); 
-		
-		sound.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/music/holiday_game_theme.mp3`;
-		sound.setAttribute("preload", "auto");
-		sound.setAttribute("controls", "none");
-		sound.setAttribute("loop", "true");
+		const sound = new Audio(`${BASE_URL}/assets/music/${path}.${format}`);
+		sound.preload = 'auto';
+		sound.controls = false;
+		sound.loop = true;
 		sound.volume = 0.05;
-		sound.style.display = "none";
-		document.body.appendChild(sound);
-
+		sound.onloadstart = () => resolve(sound);
 	});
 
 }

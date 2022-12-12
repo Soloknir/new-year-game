@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import FlipMemory from './FlipMemory.svelte';
 	import { Game } from './Game';
-	import PazzleBobble from './PazzleBobble.svelte';
+	import PazzleBobble from './PazzleBubble.svelte';
 	import Tetris from './Tetris.svelte';
 
 	let game: Game;
@@ -29,7 +29,6 @@
 			await game.loadMap();
 			game.gameStart();
 			game.startMinigameCallback = () => {
-				game.stopListeningControls();
 				if (minigameLevel < minigames.length) {
 					minigame = true;
 					if (game.gameState.player) {

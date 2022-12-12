@@ -1,6 +1,7 @@
 
 export default class AssetManager {
 	assets: { [key: string]: HTMLImageElement } = {};
+
 	get = async (path: string, format: 'png' | 'jpg' = 'png') => this.assets[path] || await this.loadAsset(path, format);
 
 	loadAssets = async (paths: string[]) => {

@@ -6,8 +6,6 @@ export class ControlsEvent {
 	keys: string[];
 	callback: () => void;
 
-	handler?: any;
-
 	constructor(keys: string[], callback: () => void) {
 		this.id = uuid();
 		this.keys = keys;
@@ -18,32 +16,30 @@ export class ControlsEvent {
 export class ControlsManager {
 	events: { [key: string]: ControlsEvent[] } = {};
 
-	handler = (actionType: string) => (event: any) => {
-		this.events[actionType]?.filter(({ keys }) => keys.includes(event.code)).map(({ callback }) => callback());
+	getHandler = (action: string) => (event: any) => {
+		this.events[action]?.filter(({ keys }) => keys.includes(event.code)).map(({ callback }) => callback());
 	}
 
 	addEventListener = (action: string, event: ControlsEvent) => {
-		this.events[action] = this.events[action] ? [...this.events[action], event] : [event];
-		event.handler = this.handler(action)
-		window.addEventListener(action, event.handler);
+		if (this.events[action]) {
+			this.events[action].push(event);	
+		} else {
+			this.events[action] = [event];
+			window.addEventListener(action, this.getHandler(action));
+		}
 	}
 
 	removeAllListeners = () => {
-		Object.keys(this.events).forEach((action) => {
-			this.events[action].forEach((event) => window.removeEventListener(action, event.handler))
-		});
-
+		Object.keys(this.events).forEach((action) => window.removeEventListener(action, this.getHandler(action)));
 		this.events = {};
 	}
 
 	removeEventListener = (event: ControlsEvent) => {
 		Object.keys(this.events).forEach((action) => {
-			const index = this.events[action].findIndex(({ id }) => event.id === id);
-			if (index > -1) {
-				this.events[action].splice(index, 1);
-				window.removeEventListener(action, event.handler);
-				return;
-			}
+			this.events[action] = this.events[action].filter(({ id }) => event.id === id);
+			if (this.events[action].length === 0) {
+				window.removeEventListener(action, this.getHandler(action));
+			}		
 		});
 	}
 }

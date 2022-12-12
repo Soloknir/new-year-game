@@ -58,13 +58,13 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 		const frameHeight = 64;
 		context.drawImage(
 			this.sprite,
-			this.column * frameWidth + frameWidth / 4,
+			this.column * frameWidth,
 			this.row * frameHeight,
-			frameWidth - frameWidth / 4,
+			frameWidth,
 			frameHeight - 2,
 			viewCoords.x - vViewCoordinates.x,
 			viewCoords.y - this.height + vViewCoordinates.y,
-			this.width,
+			this.width + frameWidth / 4,
 			this.height
 		);
 	}

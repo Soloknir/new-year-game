@@ -11,9 +11,15 @@ import Water from './Objects/Water';
 import Overlay from './Objects/Overlay';
 import AssetManager from './Helpers/AssetManager';
 import { ControlsEvent, ControlsManager } from './Helpers/ControlsManager';
+import { SoundManager } from './Helpers/SoundManager';
 
-
-
+export interface IUseControls {
+	controlsManager: ControlsManager;
+	controlsEvents: { action: string, event: ControlsEvent }[];
+	initControlsListeners: () => void;
+	startListeningControls: () => void;
+	stopListeningControls: () => void;
+}
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -23,14 +29,15 @@ export interface IGameState {
 	overlay?: Overlay;
 }
 
-export class Game {
+export class Game implements IUseControls {
 	context: CanvasRenderingContext2D;
 	viewPortSize: { width: number; height: number };
 	gameDriver: GameDriver;
-	controlsManager: ControlsManager;
 	assetManager: AssetManager;
-
-	events: { action: string, event: ControlsEvent }[] = [];
+	soundManager: SoundManager;
+	controlsManager: ControlsManager;
+	controlsEvents: { action: string, event: ControlsEvent }[] = [];
+	
 	playerRespawn = new Vector2D(250, 250);
 	currentSantaSpawn = 0;
 	sound?: HTMLAudioElement;
@@ -48,18 +55,22 @@ export class Game {
 	constructor(context: CanvasRenderingContext2D, viewPortSize: IRectangleSize) {
 		this.context = context;
 		this.viewPortSize = viewPortSize;
+		
 		this.gameDriver = new GameDriver(context, viewPortSize);
+
 		this.controlsManager = new ControlsManager();
 		this.assetManager = new AssetManager();
+		this.soundManager = new SoundManager();
 	}
 
 	gameStart = async (): Promise<IGameState> => {
-		this.gameDriver.backgroundImage = await this.assetManager.get('background', 'jpg')
+		this.gameDriver.backgroundImage = await this.assetManager.get('background/bg-game', 'jpg')
 		await this.spawnPlayer();
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener();
 		this.startListeningControls();
 		this.gameDriver.start();
+	
 		return this.gameState;
 	};
 
@@ -87,6 +98,7 @@ export class Game {
 		this.gameState.player = new Player(this.playerRespawn.getCopy(), await this.assetManager.get('characters/player'));
 		this.gameState.player.eventListeners = eventListeners;
 		this.gameDriver.spawnObject(this.gameState.player);
+		this.initControlsListeners();
 		this.startListeningControls();
 	};
 
@@ -168,7 +180,6 @@ export class Game {
 	};
 
 	startMiniGame = () => {
-		!this.sound && this.playMusic();
 		if (this.gameState.santa && this.gameState.player && this.gameDriver.overlay) {
 			delete this.gameState.overlay;
 			this.gameDriver.overlay = null;
@@ -177,41 +188,32 @@ export class Game {
 				this.gameState.santa.vCoordinates = this.santaSpawnPositions[this.currentSantaSpawn++].getCopy();
 				this.addSantaMeetingEventListener();
 			}
+
+			this.stopListeningControls();
 			this.startMinigameCallback();
 		}
 	}
 
 	startMinigameCallback = () => { return; };
 
-	startListeningControls = () => {
-		if (this.gameState && this.gameState.player) {
-			this.events = [
-				{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.startJumping)},
-				{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.startMoveRight)},
-				{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.startMoveLeft)},
-				{ action: 'keydown', event: new ControlsEvent(['Space'], this.startMiniGame)},
-				{ action: 'keyup', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.stopJumping)},
-				{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.stopMoveRight)},
-				{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.stopMoveLeft)},
-			];
+	initControlsListeners = () => {
+		if (!this.gameState.player) return;
 
-			this.events.map(({ action, event }) => this.controlsManager.addEventListener(action, event));
-		}
+		this.controlsEvents = [
+			{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.startJumping) },
+			{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.startMoveRight) },
+			{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.startMoveLeft) },
+			{ action: 'keydown', event: new ControlsEvent(['Space'], this.startMiniGame) },
+			{ action: 'keyup', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.stopJumping) },
+			{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.stopMoveRight) },
+			{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.stopMoveLeft) },
+		];
 	}
 
-	stopListeningControls = () => {
-		this.events.forEach(({ event }) => this.controlsManager.removeEventListener(event))
-	}
+	startListeningControls = () => this.controlsEvents
+		.map(({ action, event }) => this.controlsManager.addEventListener(action, event));
 
-	playMusic = () => {
-		this.sound = document.createElement("audio");
-		this.sound.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/music/holiday_game_theme.mp3`;
-		this.sound.setAttribute("preload", "auto");
-		this.sound.setAttribute("controls", "none");
-		this.sound.setAttribute("loop", "true");
-		this.sound.volume = 0.05;
-		this.sound.style.display = "none";
-		document.body.appendChild(this.sound);
-		this.sound.play();
-	}
+	stopListeningControls = () => this.controlsEvents
+		.map(({ event }) => this.controlsManager.removeEventListener(event))
+	
 }
