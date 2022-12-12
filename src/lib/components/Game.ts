@@ -66,6 +66,7 @@ export class Game implements IUseControls, IUseAssets {
 
 
 	gameStart = async (): Promise<IGameState> => {
+		this.pause();
 		await this.loadAssets()
 
 		this.gameDriver.backgroundImage = this.assetsManager.get('background/bg-game')
@@ -73,7 +74,7 @@ export class Game implements IUseControls, IUseAssets {
 		this.spawnPlayer();
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener();
-		this.gameDriver.start();
+		
 	
 		return this.gameState;
 	};
@@ -104,7 +105,6 @@ export class Game implements IUseControls, IUseAssets {
 		this.gameDriver.spawnObject(this.gameState.player);
 		this.initControlsListeners();
 		this.startListeningControls();
-		console.log(this.controlsManager);
 	};
 
 	spawnSanta = (position: ICoordinates) => {
