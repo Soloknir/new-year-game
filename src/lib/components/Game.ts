@@ -33,6 +33,7 @@ export class Game implements IUseControls, IUseAssets {
 	mainMenu: MainMenu;
 	assetsManager: AssetsManager;
 	soundManager: SoundManager;
+
 	controlsManager: ControlsManager;
 	controlsEvents: { action: string, event: ControlsEvent }[] = [];
 	
@@ -65,7 +66,8 @@ export class Game implements IUseControls, IUseAssets {
 
 	gameStart = async (): Promise<IGameState> => {
 		this.pause();
-		await this.loadAssets()
+		await this.loadAssets();
+		await this.loadSounds();
 
 		this.gameDriver.backgroundImage = this.assetsManager.get('background/bg-game')
 		this.loadMap();
@@ -212,6 +214,7 @@ export class Game implements IUseControls, IUseAssets {
 
 	pause = () => {
 		if (!this.gameState.isGamePaused) {
+			this.soundManager.get('holiday_game_theme')?.pause();
 			this.gameState.isGamePaused = true;
 			this.stopListeningControls();
 			this.gameDriver.pause();
@@ -220,6 +223,10 @@ export class Game implements IUseControls, IUseAssets {
 	}
 
 	resume = () => {
+		if (this.gameState.isGamePaused) {
+			this.soundManager.get('holiday_game_theme').play();
+		}
+
 		this.gameState.isGamePaused = false;
 		this.startListeningControls();
 		this.gameDriver.start();
@@ -249,7 +256,7 @@ export class Game implements IUseControls, IUseAssets {
 			{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.stopMoveRight) },
 			{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.stopMoveLeft) },
 		];
-	}
+	};
 
 	startListeningControls = () => {
 		this.controlsEvents.map(({ action, event }) => this.controlsManager.addEventListener(action, event))
@@ -258,4 +265,7 @@ export class Game implements IUseControls, IUseAssets {
 	stopListeningControls = () => this.controlsEvents
 		.map(({ event }) => this.controlsManager.removeEventListener(event))
 	
+	loadSounds = async () => await this.soundManager.loadSounds([
+		{ path: 'holiday_game_theme', format: 'mp3' }
+	]);
 }
