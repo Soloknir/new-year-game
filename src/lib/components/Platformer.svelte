@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import FlipMemory from './FlipMemory.svelte';
 	import { Game } from './Game';
-	import PazzleBobble from './PazzleBubble.svelte';
-	import Tetris from './Tetris.svelte';
 
 	let game: Game;
 	let canvas: HTMLCanvasElement;

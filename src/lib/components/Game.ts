@@ -14,8 +14,7 @@ import ControlsManager, { ControlsEvent, type IUseControls } from './Helpers/Con
 import { SoundManager } from './Helpers/SoundManager';
 import { Tetris } from './MiniGames/Tetris';
 import { MainMenu } from './MainMenu';
-
-
+import { Bubble } from './MiniGames/Bubble';
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -63,7 +62,6 @@ export class Game implements IUseControls, IUseAssets {
 
 		this.gameStart();
 	}
-
 
 	gameStart = async (): Promise<IGameState> => {
 		this.pause();
@@ -194,6 +192,9 @@ export class Game implements IUseControls, IUseAssets {
 
 			switch(this.gameState.level++) {
 				case 0:
+					new Bubble(this.context, this.canvasBoundingRect, this.resume);
+					break;
+				case 1:
 					new Tetris(this.context, this.canvasBoundingRect, this.resume);
 					break;
 			}

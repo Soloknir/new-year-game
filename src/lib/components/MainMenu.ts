@@ -75,11 +75,7 @@ export class MainMenu implements IUseControls, IUseAssets {
 		const { width, height } = this.canvasBoundingRect;
 		this.context.drawImage(this.assetsManager.get('background/main-menu-bg'), 0, 0, width, height);
 		this.buttons.forEach(button => button.draw(this.context, this.canvasBoundingRect.height))
-
-		this.context.fillStyle = "red";
-		this.context.fillRect(this.lastMousePosition.x, this.lastMousePosition.y, 10, 10);
 	}
-
 	
 	handleMouseClick = () => {
 		if (this.opened) {
@@ -116,4 +112,4 @@ export class MainMenu implements IUseControls, IUseAssets {
 		{ path: 'controls/button-start', format: 'png' },
 		{ path: 'controls/button-control', format: 'png' },
 	]);
-}
+}   

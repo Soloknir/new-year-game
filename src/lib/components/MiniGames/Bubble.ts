@@ -1,4 +1,5 @@
 import ControlsManager, { ControlsEvent, type IUseControls } from "../Helpers/ControlsManager";
+import type { IRectangleSize } from "../Objects/Interfaces";
 
 interface IBubble {
 	x: number,
@@ -11,7 +12,8 @@ interface IBubble {
 
 export class Bubble implements IUseControls {
 	context: CanvasRenderingContext2D;
-	grid = 32;
+	rAF: number | null = null;
+	grid = 48;
 
 	// each even row is 8 bubbles long and each odd row is 7 bubbles long.
 	// the level consists of 4 rows of bubbles of 4 colors: red, orange,
@@ -47,26 +49,24 @@ export class Bubble implements IUseControls {
 
 	// the direction of movement for the arrow (-1 = left, 1 = right)
 	shootDir = 0;
-	rAF: number | null = null;
 	
 	endGameCallback: () => void;
 
-	size = {
-		width: 271,
-		height: 392
-	}
+	size: IRectangleSize;
 
-	constructor(context: CanvasRenderingContext2D, endGameCallback: () => void) {
+	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect, endGameCallback: () => void) {
 		this.context = context;
-		this.controlsManager = ControlsManager.Instance;
+		// this.size = canvasBoundingRect
+		this.size = { width: 400, height: canvasBoundingRect.height };
 		this.endGameCallback = endGameCallback;
-
+		
+		this.controlsManager = ControlsManager.Instance;
 		this.initControlsListeners();
 		this.startListeningControls();
-
+		
 		this.minDeg = this.degToRad(-60);
 		this.maxDeg = this.degToRad(60);
-
+		
 		this.curBubblePos = {
 			// place the current bubble horizontally in the middle of the screen
 			x: this.size.width / 2,
@@ -88,7 +88,7 @@ export class Bubble implements IUseControls {
 		};
 
 		this.prepareLevel();
-		window.requestAnimationFrame(this.loop)
+		this.rAF = window.requestAnimationFrame(this.loop)
 	}
 
 	prepareLevel() {
@@ -329,6 +329,11 @@ export class Bubble implements IUseControls {
 		this.rAF = requestAnimationFrame(this.loop);
 		this.context.clearRect(0, 0, this.size.width, this.size.height);
 
+		this.update();
+		this.draw();
+	}
+
+	update = () => {
 		// move the shooting arrow
 		this.shootDeg += this.degToRad(2) * this.shootDir;
 
@@ -385,7 +390,9 @@ export class Bubble implements IUseControls {
 
 		// remove particles that went off the screen
 		this.particles = this.particles.filter(particles => particles.y < this.size.height - this.grid / 2);
+	}
 
+	draw = () => {
 		// draw walls
 		this.context.fillStyle = 'lightgrey';
 		this.context.fillRect(0, 0, this.size.width, this.wallSize);
@@ -415,7 +422,7 @@ export class Bubble implements IUseControls {
 		this.context.translate(0, -this.grid / 2 * 4.5);
 
 		// draw arrow ↑
-		this.context.strokeStyle = 'white';
+		this.context.strokeStyle = 'black';
 		this.context.lineWidth = 2;
 		this.context.beginPath();
 		this.context.moveTo(0, 0);
@@ -438,6 +445,7 @@ export class Bubble implements IUseControls {
 	release = () => {
 		this.rAF && window.cancelAnimationFrame(this.rAF);
 		this.stopListeningControls();
+		this.endGameCallback();
 	}
 
 	initControlsListeners = () => {
@@ -445,10 +453,9 @@ export class Bubble implements IUseControls {
 			{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.handleMoveRight) },
 			{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.handleMoveLeft) },
 			{ action: 'keydown', event: new ControlsEvent(['Space'], this.handleShoot) },
+			{ action: 'keydown', event: new ControlsEvent(['Escape'], this.release) },
 			{ action: 'keyup', event: new ControlsEvent(['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'], this.handleMoveStop) },
 		];
-
-		
 	}
 
 	startListeningControls = () => this.controlsEvents
@@ -463,6 +470,7 @@ export class Bubble implements IUseControls {
 			this.curBubble.dy = -Math.cos(this.shootDeg) * this.curBubble.speed;
 		}
 	}
+
 	handleMoveLeft = () => this.shootDir = -1;
 	handleMoveRight = () => this.shootDir = 1;
 	handleMoveStop = () => this.shootDir = 0;
