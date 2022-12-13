@@ -197,9 +197,18 @@ export class Game implements IUseControls, IUseAssets {
 				case 1:
 					new Tetris(this.context, this.canvasBoundingRect, this.resume);
 					break;
+				case 2: {
+					this.playMemo();
+					break;
+				}
+				case 3:
+					console.log('YOU WIN');
+					break;
 			}
 		}
 	}
+
+	playMemo = () => { return; }
 
 	pause = () => {
 		if (!this.gameState.isGamePaused) {

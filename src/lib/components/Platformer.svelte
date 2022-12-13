@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Game } from './Game';
+	import Memo from './MiniGames/Memo.svelte';
 
 	let game: Game;
 	let canvas: HTMLCanvasElement;
+	let showMemo = false;
 
-	let minigameLevel = 0;
+	const playMemo = () => showMemo = true;
 
 	onMount(async () => {
 		const context = canvas.getContext('2d');
@@ -13,13 +15,18 @@
 		if (context) {
 			const rect = canvas.getBoundingClientRect();
 			game = new Game(context, rect);
+			game.playMemo = () => showMemo = true;
 		}
 	});
 </script>
 
 <div class="container">
+	{#if game && showMemo}
+		<svelte:component this="{Memo}" on:done="{ () => { showMemo = false; game.resume() }}"></svelte:component>
+	{/if}
 	<canvas
 		bind:this={canvas}
+		style:display="{showMemo ? 'none' : 'block'}"
 		width={1320}
 		height={640}
 	>
