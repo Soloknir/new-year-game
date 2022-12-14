@@ -1,3 +1,5 @@
+import AssetManager from "../Helpers/AssetManager";
+import type { IUseAssets } from "../Helpers/AssetManager";
 import ControlsManager, { ControlsEvent, type IUseControls } from "../Helpers/ControlsManager";
 import type { IRectangleSize } from "../Objects/Interfaces";
 
@@ -10,7 +12,7 @@ interface IBubble {
 	processed?: boolean,
 }
 
-export class Bubble implements IUseControls {
+export class Bubble implements IUseControls, IUseAssets {
 	context: CanvasRenderingContext2D;
 	rAF: number | null = null;
 	grid = 48;
@@ -28,8 +30,10 @@ export class Bubble implements IUseControls {
 		'Y': 'yellow'
 	};
 
+	assetsManager: AssetManager;
 	controlsManager: ControlsManager;
 	controlsEvents: { action: string; event: ControlsEvent; }[] = [];
+
 
 	colorsKeys = Object.keys(this.colorMap);
 	colors = Object.values(this.colorMap);
@@ -52,14 +56,16 @@ export class Bubble implements IUseControls {
 	
 	endGameCallback: () => void;
 
+	canvasBoundingRect: DOMRect;
 	size: IRectangleSize;
 
 	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect, endGameCallback: () => void) {
 		this.context = context;
-		// this.size = canvasBoundingRect
+		this.canvasBoundingRect = canvasBoundingRect
 		this.size = { width: 400, height: canvasBoundingRect.height };
 		this.endGameCallback = endGameCallback;
 		
+		this.assetsManager = new AssetManager();
 		this.controlsManager = ControlsManager.Instance;
 		this.initControlsListeners();
 		this.startListeningControls();
@@ -87,6 +93,11 @@ export class Bubble implements IUseControls {
 			dy: 0
 		};
 
+		this.init();
+	}
+
+	init = async () => {
+		await this.loadAssets();
 		this.prepareLevel();
 		this.rAF = window.requestAnimationFrame(this.loop)
 	}
@@ -327,7 +338,7 @@ export class Bubble implements IUseControls {
 	// game loop
 	loop = () => {
 		this.rAF = requestAnimationFrame(this.loop);
-		this.context.clearRect(0, 0, this.size.width, this.size.height);
+		this.context.drawImage(this.assetsManager.get('background/bg-minigame'), 0, 0, this.canvasBoundingRect.width, this.canvasBoundingRect.height);
 
 		this.update();
 		this.draw();
@@ -393,11 +404,13 @@ export class Bubble implements IUseControls {
 	}
 
 	draw = () => {
+		const xShift = this.canvasBoundingRect.width / 2 - (this.size.width / 2);
+
 		// draw walls
 		this.context.fillStyle = 'lightgrey';
-		this.context.fillRect(0, 0, this.size.width, this.wallSize);
-		this.context.fillRect(0, 0, this.wallSize, this.size.height);
-		this.context.fillRect(this.size.width - this.wallSize, 0, this.wallSize, this.size.height);
+		this.context.fillRect(xShift, 0, this.size.width, this.wallSize);
+		this.context.fillRect(xShift, 0, this.wallSize, this.size.height);
+		this.context.fillRect(xShift + this.size.width - this.wallSize, 0, this.wallSize, this.size.height);
 
 		// draw bubbles and particles
 		this.bubbles.concat(this.particles).forEach(bubble => {
@@ -406,7 +419,7 @@ export class Bubble implements IUseControls {
 
 			// draw a circle
 			this.context.beginPath();
-			this.context.arc(bubble.x, bubble.y, bubble.radius, 0, 2 * Math.PI);
+			this.context.arc(xShift + bubble.x, bubble.y, bubble.radius, 0, 2 * Math.PI);
 			this.context.fill();
 		});
 
@@ -415,7 +428,7 @@ export class Bubble implements IUseControls {
 		this.context.save();
 
 		// move to the center of the rotation (the middle of the bubble)
-		this.context.translate(this.curBubblePos.x, this.curBubblePos.y);
+		this.context.translate(xShift + this.curBubblePos.x, this.curBubblePos.y);
 		this.context.rotate(this.shootDeg);
 
 		// move to the top-left corner of or fire arrow
@@ -438,7 +451,7 @@ export class Bubble implements IUseControls {
 		// draw current bubble
 		this.context.fillStyle = this.curBubble.color;
 		this.context.beginPath();
-		this.context.arc(this.curBubble.x, this.curBubble.y, this.curBubble.radius, 0, 2 * Math.PI);
+		this.context.arc(xShift + this.curBubble.x, this.curBubble.y, this.curBubble.radius, 0, 2 * Math.PI);
 		this.context.fill();
 	}
 
@@ -474,4 +487,9 @@ export class Bubble implements IUseControls {
 	handleMoveLeft = () => this.shootDir = -1;
 	handleMoveRight = () => this.shootDir = 1;
 	handleMoveStop = () => this.shootDir = 0;
+
+	loadAssets = () => this.assetsManager.loadAssets([
+		{ path: 'background/bg-minigame', format: 'jpg' }
+	]);
+
 }

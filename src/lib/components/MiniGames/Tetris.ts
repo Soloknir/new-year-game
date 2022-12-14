@@ -239,7 +239,12 @@ export class Tetris implements IUseControls, IUseAssets {
 	loop = () => {
 		this.rAF = requestAnimationFrame(this.loop);
 		const xShift = this.size.width / 2 - 160;
-		this.context.clearRect(xShift, 0, 320, this.size.height);
+		this.context.drawImage(this.assetsManager.get('background/bg-minigame'), 0, 0, this.size.width, this.size.height);
+		// draw walls
+		this.context.fillStyle = 'lightgrey';
+		this.context.fillRect(xShift, 0, 4, this.size.height);
+		this.context.fillRect(xShift + 320, 0, 4, this.size.height);
+
 
 		// draw the playfield
 		for (let row = 0; row < 20; row++) {
@@ -288,7 +293,10 @@ export class Tetris implements IUseControls, IUseAssets {
 	}
  
 	loadAssets = async () => await this.assetsManager
-		.loadAssets(Object.values(TetrominoAssets).map(path => ({ path, format: 'png' })));
+		.loadAssets([
+			...Object.values(TetrominoAssets).map((path): { path: string, format: 'png' | 'jpg' } => ({ path, format: 'png' })),
+			{ path: 'background/bg-minigame', format: 'jpg' }
+		])
 
 	initControlsListeners = () => {
 		this.controlsEvents = [

@@ -15,6 +15,7 @@ import { SoundManager } from './Helpers/SoundManager';
 import { Tetris } from './MiniGames/Tetris';
 import { MainMenu } from './MainMenu';
 import { Bubble } from './MiniGames/Bubble';
+import { GameStateManager } from './Helpers/GameStateManager';
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -36,35 +37,25 @@ export class Game implements IUseControls, IUseAssets {
 
 	controlsManager: ControlsManager;
 	controlsEvents: { action: string, event: ControlsEvent }[] = [];
-	
-	playerRespawn = new Vector2D(250, 250);
-	currentSantaSpawn = 0;
-	santaSpawnPositions: Vector2D[] = [
-		new Vector2D(2400, 350),
-		new Vector2D(3800, 200),
-		new Vector2D(5100, 200),
-	];
 
-	gameState: IGameState = {
-		isGameOver: false,
-		isGamePaused: false,
-		level: 0,
-	}
+	gameStateManager: GameStateManager;
 
 	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect) {
 		this.context = context;
 		this.canvasBoundingRect = canvasBoundingRect;
 		
 		this.gameDriver = new GameDriver(context, canvasBoundingRect);
-		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.resume);
+		
+		this.gameStateManager = GameStateManager.Instance;
 		this.controlsManager = ControlsManager.Instance;
 		this.assetsManager = new AssetsManager();
 		this.soundManager = new SoundManager();
-
+		
+		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.resume);
 		this.gameStart();
 	}
 
-	gameStart = async (): Promise<IGameState> => {
+	gameStart = async () => {
 		this.pause();
 		await this.loadAssets();
 		await this.loadSounds();
@@ -72,46 +63,40 @@ export class Game implements IUseControls, IUseAssets {
 		this.gameDriver.backgroundImage = this.assetsManager.get('background/bg-game')
 		this.loadMap();
 		this.spawnPlayer();
+		this.spawnSanta();
+
+		this.initControlsListeners();
+		this.startListeningControls();
+
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener();
-		
-	
-		return this.gameState;
 	};
 
 	loadMap = () => {
 		return Promise.all([
-			Promise.all(MapJson.characters.map(({ position }) => this.spawnSanta(position))),
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			Promise.all(MapJson.platforms.map(({ id, type, position, behavior, size }: any) => {
 				return (type === 'static')
 					? this.spawnPlatform(id, position, size)
 					: this.spawnMovingPlatform(id, position, behavior, size);
 			})),
-			this.spawnWater()
+			this.spawnWater(),
 		])
 	};
 
 	spawnPlayer = () => {
-		let eventListeners: (GameCollisionEvent | GameEdgeEvent)[] = [];
-		if (this.gameState.player) {
-			this.stopListeningControls();
-			eventListeners = [...this.gameState.player.eventListeners];
-			this.gameDriver.despawnObject(this.gameState.player);
-		}
-
-		this.gameState.player = new Player(this.playerRespawn.getCopy(), this.assetsManager.get('characters/player'));
-		this.gameState.player.eventListeners = eventListeners;
-		this.gameDriver.spawnObject(this.gameState.player);
-		this.initControlsListeners();
-		this.startListeningControls();
+		const player = new Player(this.gameStateManager.gameState.playerState.playerRespawn.getCopy(), this.assetsManager.get('characters/player'));
+		this.gameStateManager.player = player;
+		this.gameDriver.spawnObject(this.gameStateManager.player);
+		return player;
 	};
 
-	spawnSanta = (position: ICoordinates) => {
-		this.gameState.santa && this.gameDriver.despawnObject(this.gameState.santa);
-		this.gameState.santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters/santa'));
-		this.gameDriver.spawnObject(this.gameState.santa);
-		return this.gameState.santa;
+	spawnSanta = () => {
+		const position = this.gameStateManager.gameState.worldState.santaSpawnPositions[0];
+		const santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters/santa'));
+		this.gameStateManager.santa = santa;
+		this.gameDriver.spawnObject(this.gameStateManager.santa);
+		return santa;
 	}
 
 	spawnWater = () => {
@@ -129,7 +114,7 @@ export class Game implements IUseControls, IUseAssets {
 	}
 
 	spawnOverlay = async () => {
-		this.gameState.overlay = this.gameDriver.overlay = new Overlay(
+		this.gameStateManager.gameState.overlay = this.gameDriver.overlay = new Overlay(
 			new Vector2D(0, 0),
 			this.canvasBoundingRect,
 			this.assetsManager.get('dialog-overlay')
@@ -168,31 +153,37 @@ export class Game implements IUseControls, IUseAssets {
 	};
 
 	addGameOverEventListener = () => {
-		if (this.gameState.player) {
-			this.gameState.player.addEventListener(new GameEdgeEvent('less', 'y', 0, false, this.spawnPlayer));
+		if (this.gameStateManager.player) {
+			this.gameStateManager.player.addEventListener(new GameEdgeEvent('less', 'y', 0, false, () => {
+				if (this.gameStateManager.player) {
+					this.gameStateManager.player.vCoordinates = this.gameStateManager.gameState.playerState.playerRespawn.getCopy();
+					this.gameStateManager.player.vVelocity = new Vector2D();
+				}
+			}));
 		}
 	};
 
 	addSantaMeetingEventListener = () => {
-		if (this.gameState.player && this.gameState.santa) {
-			this.gameState.player.addEventListener(new GameCollisionEvent(this.gameState.santa, true, this.spawnOverlay));
+		if (this.gameStateManager.player && this.gameStateManager.santa) {
+			this.gameStateManager.player.addEventListener(new GameCollisionEvent(this.gameStateManager.santa, true, this.spawnOverlay));
 		}
 	};
 
 	startMiniGame = () => {
-		if (this.gameState.santa && this.gameState.player && this.gameDriver.overlay) {
-			delete this.gameState.overlay;
+		if (this.gameStateManager.santa && this.gameStateManager.gameState.playerState.player && this.gameDriver.overlay) {
+			delete this.gameStateManager.gameState.overlay;
 			this.gameDriver.overlay = null;
-			this.playerRespawn = this.gameState.santa.vCoordinates.getCopy();
-			if (this.currentSantaSpawn < 3) {
-				this.gameState.santa.vCoordinates = this.santaSpawnPositions[this.currentSantaSpawn++].getCopy();
+			this.gameStateManager.gameState.playerState.playerRespawn = this.gameStateManager.santa.vCoordinates.getCopy();
+			if (this.gameStateManager.gameState.worldState.currentSantaSpawn < 3) {
+				this.gameStateManager.santa.vCoordinates = this.gameStateManager
+					.gameState.worldState.santaSpawnPositions[this.gameStateManager.gameState.worldState.currentSantaSpawn++].getCopy();
 				this.addSantaMeetingEventListener();
 			}
 
 			this.stopListeningControls();
 			this.gameDriver.pause();
 
-			switch(this.gameState.level++) {
+			switch(this.gameStateManager.gameState.currentLevel++) {
 				case 0:
 					new Bubble(this.context, this.canvasBoundingRect, this.resume);
 					break;
@@ -213,9 +204,9 @@ export class Game implements IUseControls, IUseAssets {
 	playMemo = () => { return; }
 
 	pause = () => {
-		if (!this.gameState.isGamePaused) {
+		if (!this.gameStateManager.gameState.isGamePaused) {
 			this.soundManager.get('holiday_game_theme')?.pause();
-			this.gameState.isGamePaused = true;
+			this.gameStateManager.gameState.isGamePaused = true;
 			this.stopListeningControls();
 			this.gameDriver.pause();
 			this.mainMenu.open();
@@ -223,11 +214,11 @@ export class Game implements IUseControls, IUseAssets {
 	}
 
 	resume = () => {
-		if (this.gameState.isGamePaused) {
+		if (this.gameStateManager.gameState.isGamePaused) {
 			this.soundManager.get('holiday_game_theme').play();
 		}
 
-		this.gameState.isGamePaused = false;
+		this.gameStateManager.gameState.isGamePaused = false;
 		this.startListeningControls();
 		this.gameDriver.start();
 	}
@@ -244,17 +235,17 @@ export class Game implements IUseControls, IUseAssets {
 	]);
 
 	initControlsListeners = () => {
-		if (!this.gameState.player) return;
+		if (!this.gameStateManager.player) return;
 
 		this.controlsEvents = [
-			{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.startJumping) },
-			{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.startMoveRight) },
-			{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.startMoveLeft) },
+			{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameStateManager.player.startJumping) },
+			{ action: 'keydown', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameStateManager.player.startMoveRight) },
+			{ action: 'keydown', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameStateManager.player.startMoveLeft) },
 			{ action: 'keydown', event: new ControlsEvent(['Space'], this.startMiniGame) },
 			{ action: 'keydown', event: new ControlsEvent(['Escape'], this.pause) },
-			{ action: 'keyup', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameState.player.stopJumping) },
-			{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameState.player.stopMoveRight) },
-			{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameState.player.stopMoveLeft) },
+			{ action: 'keyup', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameStateManager.player.stopJumping) },
+			{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameStateManager.player.stopMoveRight) },
+			{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameStateManager.player.stopMoveLeft) },
 		];
 	};
 
