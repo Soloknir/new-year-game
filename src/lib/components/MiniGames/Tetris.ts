@@ -4,13 +4,13 @@ import type { IRectangleSize } from "../Objects/Interfaces";
 
 type TetrominoName = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L';
 enum TetrominoAssets {
-	'I' = 'tetris/cube',
-	'O' = 'tetris/cube-blue',
-	'T' = 'tetris/cube-brown',
-	'S' = 'tetris/cube-green',
-	'Z' = 'tetris/cube-pink',
-	'J' = 'tetris/cube-red',
-	'L' = 'tetris/cube-violet'
+	'I' = 'tetris.cube',
+	'O' = 'tetris.cube-blue',
+	'T' = 'tetris.cube-brown',
+	'S' = 'tetris.cube-green',
+	'Z' = 'tetris.cube-pink',
+	'J' = 'tetris.cube-red',
+	'L' = 'tetris.cube-violet'
 };
 
 interface ITetromino {
@@ -85,7 +85,7 @@ export class Tetris implements IUseControls, IUseAssets {
 		this.size = canvasBoundingRect;
 		this.endGameCallback = endGameCallback;
 		
-		this.assetsManager = new AssetsManager();
+		this.assetsManager = AssetsManager.Instance;
 		this.controlsManager = ControlsManager.Instance;
 
 		this.init();
@@ -105,7 +105,6 @@ export class Tetris implements IUseControls, IUseAssets {
 			}
 		}
 
-		await this.loadAssets();
 		this.rAF = requestAnimationFrame(this.loop);
 	}
 
@@ -239,7 +238,7 @@ export class Tetris implements IUseControls, IUseAssets {
 	loop = () => {
 		this.rAF = requestAnimationFrame(this.loop);
 		const xShift = this.size.width / 2 - 160;
-		this.context.drawImage(this.assetsManager.get('background/bg-minigame'), 0, 0, this.size.width, this.size.height);
+		this.context.drawImage(this.assetsManager.get('background.bg-minigame'), 0, 0, this.size.width, this.size.height);
 		// draw walls
 		this.context.fillStyle = 'lightgrey';
 		this.context.fillRect(xShift, 0, 4, this.size.height);
@@ -292,12 +291,6 @@ export class Tetris implements IUseControls, IUseAssets {
 		this.endGameCallback();
 	}
  
-	loadAssets = async () => await this.assetsManager
-		.loadAssets([
-			...Object.values(TetrominoAssets).map((path): { path: string, format: 'png' | 'jpg' } => ({ path, format: 'png' })),
-			{ path: 'background/bg-minigame', format: 'jpg' }
-		])
-
 	initControlsListeners = () => {
 		this.controlsEvents = [
 			{ action: 'keydown', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.handleRotate) },

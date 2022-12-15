@@ -2,28 +2,29 @@ import { Vector2D } from "../Helpers/Vector";
 import { GameObject } from "./GameObject";
 import type { IRectangleSize } from "./Interfaces";
 
+export interface IButtonTextures {
+	base: HTMLImageElement;
+	hover: HTMLImageElement;
+}
+
 export class Button extends GameObject {
 	width: number;
 	height: number;
 
-	texture: HTMLImageElement;
+	textures: IButtonTextures;
 	hover = false;
 
-	constructor(vCoordinates: Vector2D, size: IRectangleSize, texture: HTMLImageElement) {
+	constructor(vCoordinates: Vector2D, size: IRectangleSize, textures: IButtonTextures) {
 		super(vCoordinates, new Vector2D());
 
 		this.width = size.width;
 		this.height = size.height;
-		this.texture = texture;
+		this.textures = textures;
 	}
 
 	draw = (context: CanvasRenderingContext2D, viewPortHeight: number): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
-		if (this.hover) {
-			context.fillStyle = 'red';
-			context.fillRect(viewCoords.x, viewCoords.y, this.width, this.height);
-		} 
-		context.drawImage(this.texture, viewCoords.x, viewCoords.y, this.width, this.height);
+		context.drawImage(this.hover ? this.textures.hover : this.textures.base, viewCoords.x, viewCoords.y, this.width, this.height);
 	}
 
 	checkCursorColision = (cursorPosition: Vector2D, viewPortHeight: number): boolean => {

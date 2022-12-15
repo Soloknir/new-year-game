@@ -11,74 +11,62 @@
 
 	let cards = [
 		{
-			name: 'react',
-			alt: 'React',
+			name: 'saby1',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'react',
-			alt: 'React',
+			name: 'saby1',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'angular',
-			alt: 'Angular',
+			name: 'saby2',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'angular',
-			alt: 'Angular',
+			name: 'saby2',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'ember',
-			alt: 'Ember',
+			name: 'saby3',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'ember',
-			alt: 'Ember',
+			name: 'saby3',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'vue',
-			alt: 'Vue',
+			name: 'saby4',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'vue',
-			alt: 'Vue',
+			name: 'saby4',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'aurelia',
-			alt: 'Aurelia',
+			name: 'saby5',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'aurelia',
-			alt: 'Aurelia',
+			name: 'saby5',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'backbone',
-			alt: 'Backbone',
+			name: 'saby6',
 			flip: false,
 			order: 0
 		},
 		{
-			name: 'backbone',
-			alt: 'Backbone',
+			name: 'saby6',
 			flip: false,
 			order: 0
 		}
@@ -141,11 +129,11 @@
 </script>
 
 <div class="memory-game">
-	{#each cards as { flip, name, alt }, index}
+	{#each cards as { flip, name }, index}
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<div class="memory-card" class:flip="{flip}" data-name="{name}" on:click={() => handleFlipCard(index)}>
-			<img class="front-face" src="{import.meta.env.DEV ? '' : '/new-year-game'}/assets/flip/{name}.svg" alt="{alt}">
-			<img class="back-face" src="{import.meta.env.DEV ? '' : '/new-year-game'}/assets/flip/js-badge.svg" alt="Memory Card">
+			<img class="front-face" src="{import.meta.env.DEV ? '' : '/new-year-game'}/assets/memo/{name}.png" alt="saby">
+			<img class="back-face" src="{import.meta.env.DEV ? '' : '/new-year-game'}/assets/memo/saby-shirt.png" alt="saby">
 		</div>
 	{/each}
 </div>

@@ -1,5 +1,6 @@
 import GameDriver from './GameDriver';
 import MapJson from './map.json';
+import AssetsJson from './assets.json';
 import type { ICoordinates, IRectangleSize } from './Objects/Interfaces';
 import Player from './Objects/Characters/Player';
 import Platform from './Objects/Platform';
@@ -15,7 +16,8 @@ import { SoundManager } from './Helpers/SoundManager';
 import { Tetris } from './MiniGames/Tetris';
 import { MainMenu } from './MainMenu';
 import { Bubble } from './MiniGames/Bubble';
-import { GameStateManager } from './Helpers/GameStateManager';
+import { StateManager } from './Helpers/GameStateManager';
+import { EndGameScreen } from './EndGame';
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -31,36 +33,33 @@ export class Game implements IUseControls, IUseAssets {
 	canvasBoundingRect: DOMRect;
 
 	gameDriver: GameDriver;
-	mainMenu: MainMenu;
-	assetsManager: AssetsManager;
-	soundManager: SoundManager;
+	mainMenu?: MainMenu;
 
-	controlsManager: ControlsManager;
+	assetsManager = AssetsManager.Instance;
+	soundManager = SoundManager.Instance;
+	controlsManager = ControlsManager.Instance;
 	controlsEvents: { action: string, event: ControlsEvent }[] = [];
 
-	gameStateManager: GameStateManager;
+	gameStateManager: StateManager;
 
 	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect) {
 		this.context = context;
 		this.canvasBoundingRect = canvasBoundingRect;
 		
 		this.gameDriver = new GameDriver(context, canvasBoundingRect);
+		this.gameStateManager = StateManager.getInstance(this.gameDriver, this.assetsManager);
 		
-		this.gameStateManager = GameStateManager.Instance;
-		this.controlsManager = ControlsManager.Instance;
-		this.assetsManager = new AssetsManager();
-		this.soundManager = new SoundManager();
-		
-		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.resume);
 		this.gameStart();
 	}
 
 	gameStart = async () => {
-		this.pause();
 		await this.loadAssets();
 		await this.loadSounds();
+		
+		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.resume);
+		this.pause();
 
-		this.gameDriver.backgroundImage = this.assetsManager.get('background/bg-game')
+		this.gameDriver.backgroundImage = this.assetsManager.get('background.bg-game')
 		this.loadMap();
 		this.spawnPlayer();
 		this.spawnSanta();
@@ -73,29 +72,28 @@ export class Game implements IUseControls, IUseAssets {
 	};
 
 	loadMap = () => {
-		return Promise.all([
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			Promise.all(MapJson.platforms.map(({ id, type, position, behavior, size }: any) => {
+		this.gameStateManager.spawnObjects([
+			...MapJson.platforms.map(({ id, type, position, behavior, size }: any) => {
 				return (type === 'static')
-					? this.spawnPlatform(id, position, size)
-					: this.spawnMovingPlatform(id, position, behavior, size);
-			})),
+				? this.spawnPlatform(id, position, size)
+				: this.spawnMovingPlatform(id, position, behavior, size);
+			}),
 			this.spawnWater(),
-		])
+		]);
 	};
 
 	spawnPlayer = () => {
-		const player = new Player(this.gameStateManager.gameState.playerState.playerRespawn.getCopy(), this.assetsManager.get('characters/player'));
+		const player = new Player(this.gameStateManager.playerRespawn.getCopy(), this.assetsManager.get('characters.player'));
 		this.gameStateManager.player = player;
-		this.gameDriver.spawnObject(this.gameStateManager.player);
+		this.gameStateManager.player.spawn(this.gameDriver, this.assetsManager);
 		return player;
 	};
 
 	spawnSanta = () => {
-		const position = this.gameStateManager.gameState.worldState.santaSpawnPositions[0];
-		const santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters/santa'));
+		const position = this.gameStateManager.santaSpawnPositions[0];
+		const santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters.santa'));
 		this.gameStateManager.santa = santa;
-		this.gameDriver.spawnObject(this.gameStateManager.santa);
+		this.gameStateManager.santa.spawn(this.gameDriver, this.assetsManager);
 		return santa;
 	}
 
@@ -104,20 +102,19 @@ export class Game implements IUseControls, IUseAssets {
 			new Vector2D(0, -400),
 			{ width: 2 * this.canvasBoundingRect.width, height: 400 },
 			{
-				head: this.assetsManager.get('water/head'),
-				body: this.assetsManager.get('water/body')
+				head: this.assetsManager.get('water.head'),
+				body: this.assetsManager.get('water.body')
 			}
 		);
 
-		this.gameDriver.spawnObject(water);
 		return water;
 	}
 
 	spawnOverlay = async () => {
-		this.gameStateManager.gameState.overlay = this.gameDriver.overlay = new Overlay(
+		this.gameStateManager.overlay = this.gameDriver.overlay = new Overlay(
 			new Vector2D(0, 0),
 			this.canvasBoundingRect,
-			this.assetsManager.get('dialog-overlay')
+			this.assetsManager.get('dialog.overlay')
 		);
 	};
 
@@ -126,29 +123,26 @@ export class Game implements IUseControls, IUseAssets {
 			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
 			size ? size : { width: 0, height: 0 },
 			{
-				head: this.assetsManager.get(`platforms/base/head`),
-				body: this.assetsManager.get(`platforms/base/body`)
+				head: this.assetsManager.get(`platform.base.head`),
+				body: this.assetsManager.get(`platform.base.body`)
 			}
 		);
 
-		this.gameDriver.spawnObject(platform);
 		return platform;
 	};
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	spawnMovingPlatform = (id: string, coordinates?: ICoordinates, behavior?: any, size?: IRectangleSize) => {
-
 		const platform = new MovingPlatform(
 			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
 			behavior ? { ...behavior, vTarget: (new Vector2D()).setByCoordsObject(behavior.target) } : { vTarget: new Vector2D(), duration: 1, repeat: 'none' },
 			size ? size : { width: 0, height: 0 },
 			{
-				head: this.assetsManager.get(`platforms/base/head`),
-				body: this.assetsManager.get(`platforms/base/body`)
+				head: this.assetsManager.get(`platform.base.head`),
+				body: this.assetsManager.get(`platform.base.body`)
 			}
 		);
 
-		this.gameDriver.spawnObject(platform);
 		return platform;
 	};
 
@@ -156,7 +150,7 @@ export class Game implements IUseControls, IUseAssets {
 		if (this.gameStateManager.player) {
 			this.gameStateManager.player.addEventListener(new GameEdgeEvent('less', 'y', 0, false, () => {
 				if (this.gameStateManager.player) {
-					this.gameStateManager.player.vCoordinates = this.gameStateManager.gameState.playerState.playerRespawn.getCopy();
+					this.gameStateManager.player.vCoordinates = this.gameStateManager.playerRespawn.getCopy();
 					this.gameStateManager.player.vVelocity = new Vector2D();
 				}
 			}));
@@ -170,20 +164,20 @@ export class Game implements IUseControls, IUseAssets {
 	};
 
 	startMiniGame = () => {
-		if (this.gameStateManager.santa && this.gameStateManager.gameState.playerState.player && this.gameDriver.overlay) {
-			delete this.gameStateManager.gameState.overlay;
+		if (this.gameStateManager.santa && this.gameStateManager.player && this.gameDriver.overlay) {
+			delete this.gameStateManager.overlay;
 			this.gameDriver.overlay = null;
-			this.gameStateManager.gameState.playerState.playerRespawn = this.gameStateManager.santa.vCoordinates.getCopy();
-			if (this.gameStateManager.gameState.worldState.currentSantaSpawn < 3) {
+			this.gameStateManager.playerRespawn = this.gameStateManager.santa.vCoordinates.getCopy();
+			if (this.gameStateManager.currentSantaSpawn < 4) {
 				this.gameStateManager.santa.vCoordinates = this.gameStateManager
-					.gameState.worldState.santaSpawnPositions[this.gameStateManager.gameState.worldState.currentSantaSpawn++].getCopy();
+					.santaSpawnPositions[this.gameStateManager.currentSantaSpawn++].getCopy();
 				this.addSantaMeetingEventListener();
 			}
 
 			this.stopListeningControls();
 			this.gameDriver.pause();
 
-			switch(this.gameStateManager.gameState.currentLevel++) {
+			switch(this.gameStateManager.currentLevel++) {
 				case 0:
 					new Bubble(this.context, this.canvasBoundingRect, this.resume);
 					break;
@@ -195,7 +189,7 @@ export class Game implements IUseControls, IUseAssets {
 					break;
 				}
 				case 3:
-					console.log('YOU WIN');
+					new EndGameScreen(this.context, this.canvasBoundingRect, this.resume);
 					break;
 			}
 		}
@@ -204,35 +198,31 @@ export class Game implements IUseControls, IUseAssets {
 	playMemo = () => { return; }
 
 	pause = () => {
-		if (!this.gameStateManager.gameState.isGamePaused) {
+		if (!this.gameStateManager.isGamePaused) {
 			this.soundManager.get('holiday_game_theme')?.pause();
-			this.gameStateManager.gameState.isGamePaused = true;
+			this.gameStateManager.isGamePaused = true;
 			this.stopListeningControls();
 			this.gameDriver.pause();
-			this.mainMenu.open();
+			this.mainMenu?.open();
 		}
 	}
 
 	resume = () => {
-		if (this.gameStateManager.gameState.isGamePaused) {
+		if (this.gameStateManager.isGamePaused) {
 			this.soundManager.get('holiday_game_theme').play();
 		}
 
-		this.gameStateManager.gameState.isGamePaused = false;
+		this.gameStateManager.isGamePaused = false;
 		this.startListeningControls();
 		this.gameDriver.start();
 	}
 
-	loadAssets = async () => await this.assetsManager.loadAssets([
-		{ path: 'background/bg-game', format: 'jpg' },
-		{ path: 'characters/player', format: 'png' },
-		{ path: 'characters/santa', format: 'png' },
-		{ path: 'water/head', format: 'png' },
-		{ path: 'water/body', format: 'png' },
-		{ path: 'dialog-overlay', format: 'jpg' },
-		{ path: 'platforms/base/head', format: 'png' },
-		{ path: 'platforms/base/body', format: 'png' },
-	]);
+	loadAssets = async () => await this.assetsManager
+		.loadAssets(Object.keys(AssetsJson.assets)
+			.map((key, index) => ({
+				key, path: Object.values(AssetsJson.assets)[index]
+			}))
+		);
 
 	initControlsListeners = () => {
 		if (!this.gameStateManager.player) return;

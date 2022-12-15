@@ -1,7 +1,15 @@
 import { BASE_URL } from "../Constants";
 
 export class SoundManager {
+	private static _instance: SoundManager;
 	sounds: { [key: string]: HTMLAudioElement } = {};
+
+	private constructor() { /**/ }
+
+	public static get Instance() {
+		return this._instance || (this._instance = new this());
+	}
+
 	get = (path: string) => this.sounds[path];
 
 	loadSounds = async (sounds: { path: string, format: 'mp3' | 'wav' }[]) => {

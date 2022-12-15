@@ -1,4 +1,6 @@
 import { v4 as uuid } from 'uuid';
+import type GameDriver from '../GameDriver';
+import type AssetManager from '../Helpers/AssetManager';
 import { detectObjectIntersect } from '../Helpers/Intersections';
 import type { Vector2D } from '../Helpers/Vector';
 
@@ -97,7 +99,6 @@ export interface ISupportPhisics {
 	platform: GameObject | null;
 }
 
-
 export class GameObject {
 	id: string;
 	vCoordinates: Vector2D;
@@ -110,6 +111,9 @@ export class GameObject {
 		this.vVelocity = vVelocity;
 	}
 
+	spawn = (_gameDriver: GameDriver, _gameAssetManager: AssetManager) => { 
+		_gameDriver.spawnObject(this);
+	}
 	draw = (_c: CanvasRenderingContext2D, _vh: number, _vc: Vector2D): void => { return; };
 	update = (_t: number, _v: Vector2D): void => this.checkEventListeners();
 

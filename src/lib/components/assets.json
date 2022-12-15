@@ -1,0 +1,34 @@
+{
+	"assets": {
+		"background.bg-game": "background/bg-game.jpg",
+		"background.main-menu-bg": "background/main-menu-bg.png",
+		"background.bg-minigame": "background/bg-minigame.jpg",
+		"background.bg-final": "background/final-bg.jpg",
+	
+		"platform.base.head": "platforms/base/head.png",
+		"platform.base.body": "platforms/base/body.png",
+		"water.head": "water/head.png",
+		"water.body": "water/body.png",
+	
+		"characters.player": "characters/player.png",
+		"characters.santa": "characters/santa.png",
+	
+		"dialog.overlay": "dialog-overlay.jpg",
+
+		"tetris.cube": "tetris/cube.png",
+		"tetris.cube-blue": "tetris/cube-blue.png",
+		"tetris.cube-brown": "tetris/cube-brown.png",
+		"tetris.cube-green": "tetris/cube-green.png",
+		"tetris.cube-pink": "tetris/cube-pink.png",
+		"tetris.cube-red": "tetris/cube-red.png",
+		"tetris.cube-violet": "tetris/cube-violet.png",
+
+		"controls.button-start": "controls/button-start.png",
+		"controls.button-start-active": "controls/button-start-active.png",
+		"controls.button-control": "controls/button-control.png",
+		"controls.button-control-active": "controls/button-control-active.png",
+		"controls.button-restart": "controls/button-restart.png",
+		"controls.button-restart-active": "controls/button-restart-active.png"
+	}
+
+}

@@ -65,7 +65,7 @@ export class Bubble implements IUseControls, IUseAssets {
 		this.size = { width: 400, height: canvasBoundingRect.height };
 		this.endGameCallback = endGameCallback;
 		
-		this.assetsManager = new AssetManager();
+		this.assetsManager = AssetManager.Instance;
 		this.controlsManager = ControlsManager.Instance;
 		this.initControlsListeners();
 		this.startListeningControls();
@@ -97,7 +97,6 @@ export class Bubble implements IUseControls, IUseAssets {
 	}
 
 	init = async () => {
-		await this.loadAssets();
 		this.prepareLevel();
 		this.rAF = window.requestAnimationFrame(this.loop)
 	}
@@ -338,7 +337,7 @@ export class Bubble implements IUseControls, IUseAssets {
 	// game loop
 	loop = () => {
 		this.rAF = requestAnimationFrame(this.loop);
-		this.context.drawImage(this.assetsManager.get('background/bg-minigame'), 0, 0, this.canvasBoundingRect.width, this.canvasBoundingRect.height);
+		this.context.drawImage(this.assetsManager.get('background.bg-minigame'), 0, 0, this.canvasBoundingRect.width, this.canvasBoundingRect.height);
 
 		this.update();
 		this.draw();
@@ -487,9 +486,4 @@ export class Bubble implements IUseControls, IUseAssets {
 	handleMoveLeft = () => this.shootDir = -1;
 	handleMoveRight = () => this.shootDir = 1;
 	handleMoveStop = () => this.shootDir = 0;
-
-	loadAssets = () => this.assetsManager.loadAssets([
-		{ path: 'background/bg-minigame', format: 'jpg' }
-	]);
-
 }
