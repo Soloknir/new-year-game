@@ -23,6 +23,15 @@
 		"tetris.cube-red": "tetris/cube-red.png",
 		"tetris.cube-violet": "tetris/cube-violet.png",
 
+		"decoration.bush": "decorations/bush.png",
+		"decoration.snow.1": "decorations/snow-1.png",
+		"decoration.snow.2": "decorations/snow-2.png",
+		"decoration.stone.1": "decorations/stone-1.png",
+		"decoration.stone.2": "decorations/stone-2.png",
+		"decoration.tree.1": "decorations/tree-1.png",
+		"decoration.tree.2": "decorations/tree-2.png",
+		"decoration.tree.3": "decorations/tree-3.png",
+
 		"controls.button-start": "controls/button-start.png",
 		"controls.button-start-active": "controls/button-start-active.png",
 		"controls.button-control": "controls/button-control.png",

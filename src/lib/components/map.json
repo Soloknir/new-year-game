@@ -1,13 +1,7 @@
 {
-	"characters": [
-		{
-			"id": "santa",
-			"position": {
-				"x": 1000,
-				"y": 300
-			}
-		}
-	],
+	"decorations": {
+		
+	},
 	"platforms": [
 		{
 			"id": "base",

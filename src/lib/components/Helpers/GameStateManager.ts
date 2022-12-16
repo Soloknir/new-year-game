@@ -6,7 +6,6 @@ import type Overlay from "../Objects/Overlay";
 import type AssetManager from "./AssetManager";
 import { Vector2D } from "./Vector";
 
-
 export class StateManager {
 	private static _instance: StateManager;
 	private _gameDriver: GameDriver;

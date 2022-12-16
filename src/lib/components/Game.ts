@@ -18,6 +18,7 @@ import { MainMenu } from './MainMenu';
 import { Bubble } from './MiniGames/Bubble';
 import { StateManager } from './Helpers/GameStateManager';
 import { EndGameScreen } from './EndGame';
+import Decoration from './Objects/Decoration';
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -58,21 +59,25 @@ export class Game implements IUseControls, IUseAssets {
 		
 		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.resume);
 		this.pause();
-
+		
 		this.gameDriver.backgroundImage = this.assetsManager.get('background.bg-game')
 		this.loadMap();
 		this.spawnPlayer();
 		this.spawnSanta();
-
+		
 		this.initControlsListeners();
 		this.startListeningControls();
 
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener();
+		this.gameStateManager.isGamePaused = false;
 	};
 
 	loadMap = () => {
 		this.gameStateManager.spawnObjects([
+			new Decoration(new Vector2D(200, 100), { width: 150, height: 200 }, this.assetsManager.get('decoration.tree.1')),
+			new Decoration(new Vector2D(4600, 100), { width: 200, height: 300 }, this.assetsManager.get('decoration.tree.2')),
+			new Decoration(new Vector2D(5500, 200), { width: 200, height: 300 }, this.assetsManager.get('decoration.tree.3')),
 			...MapJson.platforms.map(({ id, type, position, behavior, size }: any) => {
 				return (type === 'static')
 				? this.spawnPlatform(id, position, size)
@@ -236,6 +241,7 @@ export class Game implements IUseControls, IUseAssets {
 			{ action: 'keyup', event: new ControlsEvent(['ArrowUp', 'KeyW'], this.gameStateManager.player.stopJumping) },
 			{ action: 'keyup', event: new ControlsEvent(['ArrowRight', 'KeyD'], this.gameStateManager.player.stopMoveRight) },
 			{ action: 'keyup', event: new ControlsEvent(['ArrowLeft', 'KeyA'], this.gameStateManager.player.stopMoveLeft) },
+			{ action: 'keyup', event: new ControlsEvent(['KeyY'], () => console.log(this.gameStateManager.player?.vCoordinates)) }
 		];
 	};
 
