@@ -2,12 +2,10 @@ import { Vector2D } from "../Helpers/Vector";
 import type { IRectangleSize } from "./Interfaces";
 import Platform, { type ICompositeTexture } from "./Platform";
 
-type BehaviorRepeatType = 'none' | 'fromStart' | 'fromEnd'
-
 export interface IMovingBehavior {
 	vTarget: Vector2D;
 	duration: number;
-	repeat: BehaviorRepeatType;
+	repeat: string;
 	delay?: number;
 	shift?: number;
 }

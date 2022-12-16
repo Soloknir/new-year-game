@@ -93,6 +93,11 @@ export interface IColliding {
 	getRight: () => number;
 }
 
+export interface IIntaractive extends IColliding {
+	activated: boolean;
+	callback: () => void;
+}
+
 export interface ISupportPhisics {
 	friction: number;
 	mass: number;
