@@ -137,34 +137,6 @@ export class Game implements IUseControls, IUseAssets {
 		);
 	};
 
-	spawnPlatform = (id: string, coordinates?: ICoordinates, size?: IRectangleSize) => {
-		const platform = new Platform(
-			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
-			size ? size : { width: 0, height: 0 },
-			{
-				head: this.assetsManager.get(`platform.base.head`),
-				body: this.assetsManager.get(`platform.base.body`)
-			}
-		);
-
-		return platform;
-	};
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	spawnMovingPlatform = (id: string, coordinates?: ICoordinates, behavior?: any, size?: IRectangleSize) => {
-		const platform = new MovingPlatform(
-			coordinates ? (new Vector2D()).setByCoordsObject(coordinates) : new Vector2D(),
-			behavior ? { ...behavior, vTarget: (new Vector2D()).setByCoordsObject(behavior.target) } : { vTarget: new Vector2D(), duration: 1, repeat: 'none' },
-			size ? size : { width: 0, height: 0 },
-			{
-				head: this.assetsManager.get(`platform.base.head`),
-				body: this.assetsManager.get(`platform.base.body`)
-			}
-		);
-
-		return platform;
-	};
-
 	addGameOverEventListener = () => {
 		if (this.gameStateManager.player) {
 			this.gameStateManager.player.addEventListener(new GameEdgeEvent('less', 'y', 0, false, () => {

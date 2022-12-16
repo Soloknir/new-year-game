@@ -3,6 +3,8 @@ import type { IUseAssets } from "./Helpers/AssetManager";
 import ControlsManager, { ControlsEvent, type IUseControls } from "./Helpers/ControlsManager";
 import { Vector2D } from "./Helpers/Vector";
 import { Button } from "./Objects/Button";
+import WishesJson from "./wishes.json";
+import { getRandomInt } from "./Helpers/Utils";
 
 export class EndGameScreen implements IUseControls, IUseAssets {
 	rAF: number | null = null;
@@ -10,6 +12,7 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	canvasBoundingRect: DOMRect;
 	closeHandler: () => void;
 
+	wish = '';
 	opened = false;
 	assetsManager: AssetManager;
 	controlsManager: ControlsManager;
@@ -34,6 +37,7 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 		this.initControlsListeners();
 
 		this.createButtons();
+		this.wish = WishesJson.wishes[getRandomInt(0, WishesJson.wishes.length)];
 		this.rAF = window.requestAnimationFrame(this.loop);
 		this.startListeningControls();
 		this.opened = true;
@@ -66,7 +70,16 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	draw = () => {
 		const { width, height } = this.canvasBoundingRect;
 		this.context.drawImage(this.assetsManager.get('background.bg-final'), 0, 0, width, height);
+		this.drawWish();
 		this.buttons.forEach(button => button.draw(this.context, this.canvasBoundingRect.height))
+	}
+
+	drawWish = () => {
+		this.context.fillStyle = '#fff';
+		this.context.font = '25px Arial';
+		this.context.textAlign = 'left';
+		this.context.textBaseline = 'bottom';
+		this.context.fillText(`${this.wish}`, 200, 300);
 	}
 
 	handleMouseClick = () => {
