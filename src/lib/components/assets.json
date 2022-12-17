@@ -22,6 +22,11 @@
 		"tetris.cube-pink": "tetris/cube-pink.png",
 		"tetris.cube-red": "tetris/cube-red.png",
 		"tetris.cube-violet": "tetris/cube-violet.png",
+									
+		"bubbles.1": "bubbles/bubble-1.png",	
+		"bubbles.2": "bubbles/bubble-2.png",
+		"bubbles.3": "bubbles/bubble-3.png",
+		"bubbles.4": "bubbles/bubble-4.png",
 
 		"decoration.bush": "decorations/bush.png",
 		"decoration.snow.1": "decorations/snow-1.png",

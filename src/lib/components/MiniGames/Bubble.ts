@@ -414,12 +414,11 @@ export class Bubble implements IUseControls, IUseAssets {
 		// draw bubbles and particles
 		this.bubbles.concat(this.particles).forEach(bubble => {
 			if (!bubble.active) return;
-			this.context.fillStyle = bubble.color || 'black';
-
 			// draw a circle
-			this.context.beginPath();
-			this.context.arc(xShift + bubble.x, bubble.y, bubble.radius, 0, 2 * Math.PI);
-			this.context.fill();
+			if (bubble.color) {
+				const asset = this.assetsManager.get(`bubbles.${this.colors.indexOf(bubble.color) + 1}`);
+				asset && this.context.drawImage(asset, xShift + bubble.x - bubble.radius, bubble.y - bubble.radius, 2 * bubble.radius, 2 * bubble.radius )
+			}
 		});
 
 		// draw fire arrow. since we're rotating the canvas we need to save
@@ -448,10 +447,10 @@ export class Bubble implements IUseControls, IUseAssets {
 		this.context.restore();
 
 		// draw current bubble
-		this.context.fillStyle = this.curBubble.color;
-		this.context.beginPath();
-		this.context.arc(xShift + this.curBubble.x, this.curBubble.y, this.curBubble.radius, 0, 2 * Math.PI);
-		this.context.fill();
+		if (this.curBubble.color) {
+			const asset = this.assetsManager.get(`bubbles.${this.colors.indexOf(this.curBubble.color) + 1}`);
+			asset && this.context.drawImage(asset, xShift + this.curBubble.x - this.curBubble.radius, this.curBubble.y - this.curBubble.radius, 2 * this.curBubble.radius, 2 * this.curBubble.radius)
+		}
 	}
 
 	release = () => {
