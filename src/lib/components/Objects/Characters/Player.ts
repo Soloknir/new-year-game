@@ -3,6 +3,7 @@ import { G } from "../../Constants";
 import { GameObject, type IColliding, type IRectangular, type ISupportPhisics } from "../GameObject";
 
 export default class Player extends GameObject implements IRectangular, IColliding, ISupportPhisics {
+	depth = 1;
 	// Implements IRectangular interface
 	width: number;
 	height: number;

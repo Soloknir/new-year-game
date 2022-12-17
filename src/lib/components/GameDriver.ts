@@ -46,7 +46,8 @@ export default class GameDriver {
 				this.context.drawImage(this.backgroundImage, 0, 0, this.viewPortWidth, this.viewPortHeight);
 			}
 	
-			this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
+			this.gameObjects.sort((a, b) => a.depth > b.depth ? 1 : a.depth < b.depth ? -1: 0)
+				.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
 			this.drawFps(Math.round(1 / this.secondsPassed));
 		} else {
 			this.overlay.draw(this.context);

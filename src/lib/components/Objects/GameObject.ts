@@ -109,6 +109,7 @@ export interface ISupportPhisics {
 
 export class GameObject {
 	id: string;
+	depth = 0;
 	vCoordinates: Vector2D;
 	vVelocity: Vector2D;
 	eventListeners: (GameCollisionEvent | GameEdgeEvent)[] = [];
