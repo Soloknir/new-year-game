@@ -83,7 +83,7 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 			this.vVelocity.x -= this.horizontalMoveSpeed;
 		}
 		if (this.platform) {
-			this.vVelocity.x += this.platform.vVelocity.x ;
+			this.vVelocity.x += this.platform.vVelocity.x;
 		}
 
 		if (this.isJumping && this.platform) {

@@ -37,12 +37,12 @@ export class MainMenu implements IUseControls, IUseAssets {
 	createButtons = () => {
 		this.buttons = [
 			new Button(new Vector2D(860, 400), { width: 150, height: 50 }, {
-				base: this.assetsManager.get('controls.button-start'),
-				hover: this.assetsManager.get('controls.button-start-active')
+				base: this.assetsManager.get('button.start'),
+				hover: this.assetsManager.get('button.start-active')
 			}),
 			new Button(new Vector2D(860, 325), { width: 150, height: 50 }, {
-				base: this.assetsManager.get('controls.button-control'),
-				hover: this.assetsManager.get('controls.button-control-active')
+				base: this.assetsManager.get('button.control'),
+				hover: this.assetsManager.get('button.control-active')
 			})
 		];
 	}

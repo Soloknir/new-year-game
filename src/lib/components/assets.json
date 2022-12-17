@@ -31,13 +31,19 @@
 		"decoration.tree.1": "decorations/tree-1.png",
 		"decoration.tree.2": "decorations/tree-2.png",
 		"decoration.tree.3": "decorations/tree-3.png",
+		"decoration.box": "decorations/box.png",
 
-		"controls.button-start": "controls/button-start.png",
-		"controls.button-start-active": "controls/button-start-active.png",
-		"controls.button-control": "controls/button-control.png",
-		"controls.button-control-active": "controls/button-control-active.png",
-		"controls.button-restart": "controls/button-restart.png",
-		"controls.button-restart-active": "controls/button-restart-active.png"
+		"button.start": "buttons/button-start.png",
+		"button.start-active": "buttons/button-start-active.png",
+		"button.control": "buttons/button-control.png",
+		"button.control-active": "buttons/button-control-active.png",
+		"button.restart": "buttons/button-restart.png",
+		"button.restart-active": "buttons/button-restart-active.png",
+
+		"key.a": "keys/key-a.png",
+		"key.d": "keys/key-d.png",
+		"key.s": "keys/key-s.png",
+		"key.space": "keys/key-space.png",
+		"key.w": "keys/key-w.png"
 	}
-
 }

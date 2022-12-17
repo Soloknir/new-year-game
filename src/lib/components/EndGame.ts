@@ -46,8 +46,8 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	createButtons = () => {
 		this.buttons = [
 			new Button(new Vector2D(950, 80), { width: 150, height: 50 }, {
-				base: this.assetsManager.get('controls.button-restart'),
-				hover: this.assetsManager.get('controls.button-restart-active')
+				base: this.assetsManager.get('button.restart'),
+				hover: this.assetsManager.get('button.restart-active')
 			})
 		];
 	}

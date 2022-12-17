@@ -4,12 +4,14 @@ import type Santa from "../Objects/Characters/Santa";
 import type { GameObject } from "../Objects/GameObject";
 import type Overlay from "../Objects/Overlay";
 import type AssetManager from "./AssetManager";
+import type ControlsManager from "./ControlsManager";
 import { Vector2D } from "./Vector";
 
 export class StateManager {
 	private static _instance: StateManager;
-	private _gameDriver: GameDriver;
-	private _assetManager: AssetManager;
+	private gameDriver: GameDriver;
+	private assetManager: AssetManager;
+	private controlsManager: ControlsManager;
 	
 	isGameOver = false;
 	isGameStarted = false;
@@ -28,13 +30,14 @@ export class StateManager {
 	playerRespawn = new Vector2D(250, 250);
 	objects: GameObject[] = []
 
-	private constructor(gameDriver: GameDriver, assetManager: AssetManager) {
-		this._gameDriver = gameDriver;
-		this._assetManager = assetManager;
+	private constructor(gameDriver: GameDriver, assetManager: AssetManager, controlsManager: ControlsManager) {
+		this.gameDriver = gameDriver;
+		this.assetManager = assetManager;
+		this.controlsManager = controlsManager;
 	}
 
-	public static getInstance(gameDriver: GameDriver, assetManager: AssetManager) {
-		return this._instance || (this._instance = new this(gameDriver, assetManager));
+	public static getInstance(gameDriver: GameDriver, assetManager: AssetManager, controlsManager: ControlsManager) {
+		return this._instance || (this._instance = new this(gameDriver, assetManager, controlsManager));
 	}
 
 	private _player?: Player;
@@ -47,7 +50,7 @@ export class StateManager {
 
 	spawnObjects(objects: GameObject[]) {
 		objects.map(object => {
-			object.spawn(this._gameDriver, this._assetManager);
+			object.spawn(this.gameDriver, this.assetManager, this.controlsManager, this);
 			this.objects.push(object);
 		})
 	}

@@ -1,14 +1,11 @@
 import GameDriver from './GameDriver';
 import MapJson from './map.json';
 import AssetsJson from './assets.json';
-import type { ICoordinates, IRectangleSize } from './Objects/Interfaces';
 import Player from './Objects/Characters/Player';
 import Platform from './Objects/Platform';
-import { Vector2D } from './Helpers/Vector';
 import Santa from './Objects/Characters/Santa';
 import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 import MovingPlatform from './Objects/MovingPlatform';
-import Water from './Objects/Water';
 import Overlay from './Objects/Overlay';
 import AssetsManager, { type IUseAssets } from './Helpers/AssetManager';
 import ControlsManager, { ControlsEvent, type IUseControls } from './Helpers/ControlsManager';
@@ -18,7 +15,10 @@ import { MainMenu } from './MainMenu';
 import { Bubble } from './MiniGames/Bubble';
 import { StateManager } from './Helpers/GameStateManager';
 import { EndGameScreen } from './EndGame';
+import { Vector2D } from './Helpers/Vector';
 import Decoration from './Objects/Decoration';
+import Water from './Objects/water';
+import PrizeBox from './Objects/PrizeBox';
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -48,7 +48,7 @@ export class Game implements IUseControls, IUseAssets {
 		this.canvasBoundingRect = canvasBoundingRect;
 
 		this.gameDriver = new GameDriver(context, canvasBoundingRect);
-		this.gameStateManager = StateManager.getInstance(this.gameDriver, this.assetsManager);
+		this.gameStateManager = StateManager.getInstance(this.gameDriver, this.assetsManager, this.controlsManager);
 
 		this.gameStart();
 	}
@@ -64,6 +64,12 @@ export class Game implements IUseControls, IUseAssets {
 		this.loadMap();
 		this.spawnPlayer();
 		this.spawnSanta();
+		this.gameStateManager.spawnObjects([
+			new PrizeBox(new Vector2D(5200, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), () => new EndGameScreen(this.context, this.canvasBoundingRect, this.resume)),
+			new PrizeBox(new Vector2D(5300, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), () => new EndGameScreen(this.context, this.canvasBoundingRect, this.resume)),
+			new PrizeBox(new Vector2D(5400, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), () => new EndGameScreen(this.context, this.canvasBoundingRect, this.resume)),
+			new PrizeBox(new Vector2D(5500, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), () => new EndGameScreen(this.context, this.canvasBoundingRect, this.resume)),
+		]);
 
 		this.initControlsListeners();
 		this.startListeningControls();
@@ -104,7 +110,7 @@ export class Game implements IUseControls, IUseAssets {
 	spawnPlayer = () => {
 		const player = new Player(this.gameStateManager.playerRespawn.getCopy(), this.assetsManager.get('characters.player'));
 		this.gameStateManager.player = player;
-		this.gameStateManager.player.spawn(this.gameDriver, this.assetsManager);
+		this.gameStateManager.player.spawn(this.gameDriver, this.assetsManager, this.controlsManager, this.gameStateManager);
 		return player;
 	};
 
@@ -112,7 +118,7 @@ export class Game implements IUseControls, IUseAssets {
 		const position = this.gameStateManager.santaSpawnPositions[0];
 		const santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters.santa'));
 		this.gameStateManager.santa = santa;
-		this.gameStateManager.santa.spawn(this.gameDriver, this.assetsManager);
+		this.gameStateManager.santa.spawn(this.gameDriver, this.assetsManager, this.controlsManager, this.gameStateManager);
 		return santa;
 	}
 
@@ -175,13 +181,10 @@ export class Game implements IUseControls, IUseAssets {
 				case 1:
 					new Tetris(this.context, this.canvasBoundingRect, this.resume);
 					break;
-				case 2: {
+				case 3: {
 					this.playMemo();
 					break;
 				}
-				case 3:
-					new EndGameScreen(this.context, this.canvasBoundingRect, this.resume);
-					break;
 			}
 		}
 	}
