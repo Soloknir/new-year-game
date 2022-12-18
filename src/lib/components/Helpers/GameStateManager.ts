@@ -27,7 +27,7 @@ export class StateManager {
 	];
 	
 	overlay?: Overlay;
-	playerRespawn = new Vector2D(7100, 250);
+	playerRespawn = new Vector2D(250, 250);
 	objects: GameObject[] = []
 
 	private constructor(gameDriver: GameDriver, assetManager: AssetManager, controlsManager: ControlsManager) {
@@ -53,5 +53,11 @@ export class StateManager {
 			object.spawn(this.gameDriver, this.assetManager, this.controlsManager, this);
 			this.objects.push(object);
 		})
+	}
+
+	restartGame() {
+		this.playerRespawn = new Vector2D(250, 250);
+		this.currentLevel = 0;
+		this.currentSantaSpawn = 0;
 	}
 }

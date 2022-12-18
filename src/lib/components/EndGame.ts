@@ -5,6 +5,7 @@ import { Vector2D } from "./Helpers/Vector";
 import { Button } from "./Objects/Button";
 import WishesJson from "./wishes.json";
 import { getRandomInt } from "./Helpers/Utils";
+import type { StateManager } from "./Helpers/GameStateManager";
 
 export class EndGameScreen implements IUseControls, IUseAssets {
 	rAF: number | null = null;
@@ -14,6 +15,7 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 
 	wish = '';
 	opened = false;
+	gameStateManager: StateManager
 	assetsManager: AssetManager;
 	controlsManager: ControlsManager;
 	controlsEvents: { action: string; event: ControlsEvent; }[] = [];
@@ -23,11 +25,12 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	lastMousePosition = new Vector2D();
 	afterLoadCollback?: () => void;
 
-	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect, closeHandler: () => void) {
+	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect, gameStateManager: StateManager, closeHandler: () => void) {
 		this.context = context;
 		this.canvasBoundingRect = canvasBoundingRect;
 		this.closeHandler = closeHandler;
 
+		this.gameStateManager = gameStateManager;
 		this.controlsManager = ControlsManager.Instance;
 		this.assetsManager = AssetManager.Instance;
 		this.init();

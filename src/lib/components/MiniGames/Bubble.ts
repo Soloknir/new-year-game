@@ -340,7 +340,7 @@ export class Bubble implements IUseControls, IUseAssets {
 		this.context.drawImage(this.assetsManager.get('background.bg-minigame'), 0, 0, this.canvasBoundingRect.width, this.canvasBoundingRect.height);
 
 		this.update();
-		this.draw();
+		this.rAF && this.draw();
 	}
 
 	update = () => {
@@ -383,8 +383,7 @@ export class Bubble implements IUseControls, IUseAssets {
 			if (bubble.active && this.collides(this.curBubble, bubble)) {
 				const closestBubble = this.getClosestBubble(this.curBubble);
 				if (!closestBubble) {
-					window.alert('Game Over');
-					window.location.reload();
+					this.showGameOver();
 				}
 
 				if (closestBubble) {
@@ -402,6 +401,30 @@ export class Bubble implements IUseControls, IUseAssets {
 		this.particles = this.particles.filter(particles => particles.y < this.size.height - this.grid / 2);
 	}
 
+	showGameOver() {
+		this.rAF && cancelAnimationFrame(this.rAF);
+		this.rAF = null;
+		const xShift = this.canvasBoundingRect.width / 2 - (this.size.width / 2);
+
+		this.context.fillStyle = 'black';
+		this.context.globalAlpha = 0.75;
+		this.context.fillRect(0, this.size.height / 2 - 30, this.canvasBoundingRect.width, 80);
+
+		this.context.globalAlpha = 1;
+		this.context.fillStyle = 'white';
+		this.context.font = '36px monospace';
+		this.context.textAlign = 'center';
+		this.context.textBaseline = 'middle';
+		this.context.fillText('О неет, игрушки..', xShift + this.size.width / 2, this.size.height / 2);
+
+		this.context.fillStyle = 'white';
+		this.context.font = '16px monospace';
+		this.context.textAlign = 'center';
+		this.context.textBaseline = 'middle';
+		this.context.fillText('Нажмите Esc', xShift + this.size.width / 2, this.size.height / 2 + 30);
+
+	}
+	
 	draw = () => {
 		const xShift = this.canvasBoundingRect.width / 2 - (this.size.width / 2);
 

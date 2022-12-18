@@ -224,14 +224,21 @@ export class Tetris implements IUseControls, IUseAssets {
 
 		this.context.fillStyle = 'black';
 		this.context.globalAlpha = 0.75;
-		this.context.fillRect(0, this.size.height / 2 - 30, this.size.width, 60);
+		this.context.fillRect(0, this.size.height / 2 - 30, this.size.width, 80);
 
 		this.context.globalAlpha = 1;
 		this.context.fillStyle = 'white';
 		this.context.font = '36px monospace';
 		this.context.textAlign = 'center';
 		this.context.textBaseline = 'middle';
-		this.context.fillText('GAME OVER!', this.size.width / 2, this.size.height / 2);
+		this.context.fillText('О неет, подарки..', this.size.width / 2, this.size.height / 2);
+
+		this.context.fillStyle = 'white';
+		this.context.font = '16px monospace';
+		this.context.textAlign = 'center';
+		this.context.textBaseline = 'middle';
+		this.context.fillText('Нажмите Esc', this.size.width / 2, this.size.height / 2 + 30);
+
 	}
 
 	// game loop
