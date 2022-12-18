@@ -76,7 +76,6 @@ export class Game implements IUseControls, IUseAssets {
 
 		this.addSantaMeetingEventListener();
 		this.addGameOverEventListener();
-		this.gameStateManager.isGamePaused = false;
 	};
 
 	loadMap = () => {
@@ -204,7 +203,9 @@ export class Game implements IUseControls, IUseAssets {
 	resume = () => {
 		if (this.gameStateManager.isGamePaused) {
 			this.soundManager.get('holiday_game_theme').play();
+			console.log('play')
 		}
+		console.log('resume', this.gameStateManager.isGamePaused)
 
 		this.gameStateManager.isGamePaused = false;
 		this.startListeningControls();
