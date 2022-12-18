@@ -22,12 +22,12 @@ export class StateManager {
 	santaSpawnPositions = [
 		new Vector2D(1000, 300),
 		new Vector2D(2400, 350),
-		new Vector2D(3800, 200),
-		new Vector2D(5100, 200),
+		new Vector2D(5550, 800),
+		new Vector2D(6800, 200),
 	];
 	
 	overlay?: Overlay;
-	playerRespawn = new Vector2D(250, 250);
+	playerRespawn = new Vector2D(7100, 250);
 	objects: GameObject[] = []
 
 	private constructor(gameDriver: GameDriver, assetManager: AssetManager, controlsManager: ControlsManager) {

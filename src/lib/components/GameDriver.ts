@@ -48,18 +48,9 @@ export default class GameDriver {
 	
 			this.gameObjects.sort((a, b) => a.depth > b.depth ? 1 : a.depth < b.depth ? -1: 0)
 				.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
-			this.drawFps(Math.round(1 / this.secondsPassed));
 		} else {
 			this.overlay.draw(this.context);
 		}
-	}
-
-	drawFps = (timeStamp: number) => {
-		this.context.fillStyle = '#fff';
-		this.context.font = '20px Arial';
-		this.context.textAlign = 'right';
-		this.context.textBaseline = 'bottom';
-		this.context.fillText(`fps: ${timeStamp}`, this.viewPortWidth - 20, 30);
 	}
 
 	detectPlatformCollision = (): void => {
@@ -102,7 +93,7 @@ export default class GameDriver {
 						&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
 						&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
 					) {
-						obj.vCoordinates.x = platform.vCoordinates.x + platform.getRight();
+						obj.vCoordinates.x = platform.vCoordinates.x + platform.getRight() - obj.getLeft();
 						obj.vVelocity.x = 1;
 					}
 				}

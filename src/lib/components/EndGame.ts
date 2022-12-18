@@ -77,9 +77,9 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	drawWish = () => {
 		this.context.fillStyle = '#fff';
 		this.context.font = '25px Arial';
-		this.context.textAlign = 'left';
+		this.context.textAlign = 'center';
 		this.context.textBaseline = 'bottom';
-		this.context.fillText(`${this.wish}`, 200, 300);
+		this.wish.split('/n').forEach((line, index) => this.context.fillText(`${line}`, 400, 300 + index * 30));
 	}
 
 	handleMouseClick = () => {

@@ -109,7 +109,7 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 
 	getTop = () => this.height;
 	getBottom = () => 0;
-	getLeft = () => 0;
+	getLeft = () => 16;
 	getRight = () => this.width - 16;
 
 	startJumping = () => this.isJumping = true;
