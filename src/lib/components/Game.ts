@@ -16,7 +16,7 @@ import { StateManager } from './Helpers/GameStateManager';
 import { EndGameScreen } from './EndGame';
 import { Vector2D } from './Helpers/Vector';
 import Decoration from './Objects/Decoration';
-import Water from './Objects/water';
+import Water from './Objects/Water';
 import PrizeBox from './Objects/PrizeBox';
 import Snowman from './Objects/Characters/Snowman';
 
@@ -172,7 +172,7 @@ export class Game implements IUseControls, IUseAssets {
 
 	addSnowmanMeetingEventListener = () => {
 		const snowmanSpeech: string[] = [
-			'А вот и я Забагованный снеговик! Даже не рассчитывайна легкую победу! Ваши игрушкио станутся со мной. Праздника вам не видать!',
+			'А вот и я Забагованный снеговик! Даже не рассчитывайна легкую победу! Ваши игрушки останутся со мной. Праздника вам не видать!',
 			'Баги! Баги повсюду! У вас не будет времени на упаковку подарков. Нового года не будет, ВУАХАХАХАХ!',
 			'Немы(uncaught referenceerror)слимо!! Я Всё равно перепутаю вам все карты! Кстати о картах...',
 		];
