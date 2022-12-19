@@ -41,16 +41,14 @@ export default class PrizeBox extends GameObject implements IRectangular, IIntar
 	draw = (context: CanvasRenderingContext2D, viewPortHeight: number, vViewCoordinates: Vector2D): void => {
 		const viewCoords = this.vCoordinates.getViewCoordinates(viewPortHeight);
 		if (this.active) {
-			context.fillStyle = 'blue';
-			context.fillRect(viewCoords.x - vViewCoordinates.x - 2, viewCoords.y - this.height + vViewCoordinates.y - 2, this.width + 4, this.height + 4);
 			const vKeyCoordinates = new Vector2D(
 				viewCoords.x - vViewCoordinates.x + this.width / 2 - 25,
-				viewCoords.y + vViewCoordinates.y - 2 * this.height + 15,
-				);
-				
-				context.drawImage(this.activeKeyTexture, vKeyCoordinates.x, vKeyCoordinates.y, 50, 30);
-			}
-			context.drawImage(this.texture, viewCoords.x - vViewCoordinates.x, viewCoords.y - this.height + vViewCoordinates.y, this.width, this.height);
+				viewCoords.y + vViewCoordinates.y - 2 * this.height + 25,
+			);
+			
+			context.drawImage(this.activeKeyTexture, vKeyCoordinates.x, vKeyCoordinates.y, 50, 30);
+		}
+		context.drawImage(this.texture, viewCoords.x - vViewCoordinates.x, viewCoords.y - this.height + vViewCoordinates.y, this.width, this.height);
 	}
 
 	checkEventListeners = () => {

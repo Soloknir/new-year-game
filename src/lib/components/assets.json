@@ -1,7 +1,7 @@
 {
 	"assets": {
 		"background.bg-game": "background/bg-game.jpg",
-		"background.main-menu-bg": "background/main-menu-bg.png",
+		"background.main-menu-bg": "background/main-menu-bg.jpg",
 		"background.bg-minigame": "background/bg-minigame.jpg",
 		"background.bg-final": "background/final-bg.jpg",
 	
@@ -12,6 +12,7 @@
 	
 		"characters.player": "characters/player.png",
 		"characters.santa": "characters/santa.png",
+		"characters.snowman": "characters/snowman-evil.png",
 	
 		"dialog.overlay": "dialog-overlay.jpg",
 
@@ -39,8 +40,23 @@
 		"decoration.needle": "decorations/needle.png",
 		"decoration.box": "decorations/box.png",
 
+		"gift.1": "gifts/gift1.png",
+		"gift.2": "gifts/gift2.png",
+		"gift.3": "gifts/gift3.png",
+		"gift.4": "gifts/gift4.png",
+		"gift.5": "gifts/gift5.png",
+		"gift.6": "gifts/gift6.png",
+		"gift.7": "gifts/gift7.png",
+		"gift.8": "gifts/gift8.png",
+		"gift.9": "gifts/gift9.png",
+		"gift.10": "gifts/gift10.png",
+		"gift.11": "gifts/gift11.png",
+		"gift.12": "gifts/gift12.png",
+
 		"button.start": "buttons/button-start.png",
 		"button.start-active": "buttons/button-start-active.png",
+		"button.continue": "buttons/button-continue.png",
+		"button.continue-active": "buttons/button-continue-active.png",
 		"button.control": "buttons/button-control.png",
 		"button.control-active": "buttons/button-control-active.png",
 		"button.restart": "buttons/button-restart.png",

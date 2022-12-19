@@ -3,7 +3,6 @@ import MapJson from './map.json';
 import AssetsJson from './assets.json';
 import Player from './Objects/Characters/Player';
 import Platform from './Objects/Platform';
-import Santa from './Objects/Characters/Santa';
 import { GameCollisionEvent, GameEdgeEvent } from './Objects/GameObject';
 import MovingPlatform from './Objects/MovingPlatform';
 import Overlay from './Objects/Overlay';
@@ -19,13 +18,14 @@ import { Vector2D } from './Helpers/Vector';
 import Decoration from './Objects/Decoration';
 import Water from './Objects/water';
 import PrizeBox from './Objects/PrizeBox';
+import Snowman from './Objects/Characters/Snowman';
 
 export interface IGameState {
 	isGameOver: boolean;
 	isGamePaused: boolean;
 	level: number;
 	player?: Player;
-	santa?: Santa;
+	snowman?: Snowman;
 	overlay?: Overlay;
 }
 
@@ -57,24 +57,25 @@ export class Game implements IUseControls, IUseAssets {
 		await this.loadAssets();
 		await this.loadSounds();
 
-		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.resume);
+		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.gameStateManager, this.resume);
 		this.pause();
 
 		this.gameDriver.backgroundImage = this.assetsManager.get('background.bg-game')
 		this.loadMap();
 		this.spawnPlayer();
-		this.spawnSanta();
+		this.spawnSnowman();
 		this.gameStateManager.spawnObjects([
-			new PrizeBox(new Vector2D(6900, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), this.handleEndGame),
-			new PrizeBox(new Vector2D(7000, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), this.handleEndGame),
-			new PrizeBox(new Vector2D(7100, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), this.handleEndGame),
-			new PrizeBox(new Vector2D(7200, 200), { width: 64, height: 64 }, this.assetsManager.get('decoration.box'), this.assetsManager.get('key.space'), this.handleEndGame),
+			new PrizeBox(new Vector2D(6900, 200), { width: 50, height: 50 }, this.assetsManager.get('gift.1'), this.assetsManager.get('key.space'), this.handleEndGame),
+			new PrizeBox(new Vector2D(7000, 200), { width: 50, height: 50 }, this.assetsManager.get('gift.2'), this.assetsManager.get('key.space'), this.handleEndGame),
+			new PrizeBox(new Vector2D(7100, 200), { width: 50, height: 50 }, this.assetsManager.get('gift.3'), this.assetsManager.get('key.space'), this.handleEndGame),
+			new PrizeBox(new Vector2D(7200, 200), { width: 50, height: 50 }, this.assetsManager.get('gift.4'), this.assetsManager.get('key.space'), this.handleEndGame),
+			new PrizeBox(new Vector2D(7300, 200), { width: 50, height: 50 }, this.assetsManager.get('gift.5'), this.assetsManager.get('key.space'), this.handleEndGame),
 		]);
 
 		this.initControlsListeners();
 		this.startListeningControls();
 
-		this.addSantaMeetingEventListener();
+		this.addSnowmanMeetingEventListener();
 		this.addGameOverEventListener();
 	};
 
@@ -82,14 +83,14 @@ export class Game implements IUseControls, IUseAssets {
 	handleRestart = () => {
 		this.pause();
 		this.gameStateManager.restartGame();
-		this.addSantaMeetingEventListener();
+		this.addSnowmanMeetingEventListener();
 		if (this.gameStateManager.player) {
 			this.gameStateManager.player.vCoordinates = this.gameStateManager.playerRespawn.getCopy();
 			this.gameStateManager.player.vVelocity = new Vector2D();
 		}
-		if (this.gameStateManager.santa) {
-			this.gameStateManager.santa.vCoordinates = this.gameStateManager
-				.santaSpawnPositions[this.gameStateManager.currentSantaSpawn].getCopy();
+		if (this.gameStateManager.snowman) {
+			this.gameStateManager.snowman.vCoordinates = this.gameStateManager
+				.snowmanSpawnPositions[this.gameStateManager.currentSnowmanSpawn].getCopy();
 		}
 	}
 
@@ -128,12 +129,12 @@ export class Game implements IUseControls, IUseAssets {
 		return player;
 	};
 
-	spawnSanta = () => {
-		const position = this.gameStateManager.santaSpawnPositions[0];
-		const santa = new Santa(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters.santa'));
-		this.gameStateManager.santa = santa;
-		this.gameStateManager.santa.spawn(this.gameDriver, this.assetsManager, this.controlsManager, this.gameStateManager);
-		return santa;
+	spawnSnowman = () => {
+		const position = this.gameStateManager.snowmanSpawnPositions[0];
+		const snowman = new Snowman(new Vector2D(position.x, position.y), new Vector2D(), this.assetsManager.get('characters.snowman'));
+		this.gameStateManager.snowman = snowman;
+		this.gameStateManager.snowman.spawn(this.gameDriver, this.assetsManager, this.controlsManager, this.gameStateManager);
+		return snowman;
 	}
 
 	spawnWater = () => {
@@ -149,11 +150,12 @@ export class Game implements IUseControls, IUseAssets {
 		return water;
 	}
 
-	spawnOverlay = async () => {
+	spawnOverlay = async (text: string) => {
 		this.gameStateManager.overlay = this.gameDriver.overlay = new Overlay(
 			new Vector2D(0, 0),
 			this.canvasBoundingRect,
-			this.assetsManager.get('dialog.overlay')
+			this.assetsManager.get('dialog.overlay'),
+			text
 		);
 	};
 
@@ -168,22 +170,31 @@ export class Game implements IUseControls, IUseAssets {
 		}
 	};
 
-	addSantaMeetingEventListener = () => {
-		if (this.gameStateManager.player && this.gameStateManager.santa) {
-			this.gameStateManager.player.addEventListener(new GameCollisionEvent(this.gameStateManager.santa, true, this.spawnOverlay));
+	addSnowmanMeetingEventListener = () => {
+		const snowmanSpeech: string[] = [
+			'А вот и я Забагованный снеговик! Даже не рассчитывайна легкую победу! Ваши игрушкио станутся со мной. Праздника вам не видать!',
+			'Баги! Баги повсюду! У вас не будет времени на упаковку подарков. Нового года не будет, ВУАХАХАХАХ!',
+			'Немы(uncaught referenceerror)слимо!! Я Всё равно перепутаю вам все карты! Кстати о картах...',
+		];
+
+		if (this.gameStateManager.player && this.gameStateManager.snowman) {
+			this.gameStateManager.player
+				.addEventListener(new GameCollisionEvent(this.gameStateManager.snowman, true,
+					() => this.spawnOverlay(snowmanSpeech[this.gameStateManager.currentLevel])
+				));
 		}
 	};
 
 	startMiniGame = () => {
-		if (this.gameStateManager.santa && this.gameStateManager.player && this.gameDriver.overlay) {
+		if (this.gameStateManager.snowman && this.gameStateManager.player && this.gameDriver.overlay) {
 			delete this.gameStateManager.overlay;
 			this.gameDriver.overlay = null;
-			this.gameStateManager.playerRespawn = this.gameStateManager.santa.vCoordinates.getCopy();
-			if (this.gameStateManager.currentSantaSpawn <= 3) {
-				this.gameStateManager.santa.vCoordinates = this.gameStateManager
-					.santaSpawnPositions[this.gameStateManager.currentSantaSpawn++].getCopy();
-					if (this.gameStateManager.currentSantaSpawn <= 3)
-						this.addSantaMeetingEventListener();
+			this.gameStateManager.playerRespawn = this.gameStateManager.snowman.vCoordinates.getCopy();
+			if (this.gameStateManager.currentSnowmanSpawn <= 3) {
+				this.gameStateManager.snowman.vCoordinates = this.gameStateManager
+					.snowmanSpawnPositions[this.gameStateManager.currentSnowmanSpawn++].getCopy();
+					if (this.gameStateManager.currentSnowmanSpawn <= 3)
+						this.addSnowmanMeetingEventListener();
 			}
 
 			this.stopListeningControls();
@@ -196,8 +207,7 @@ export class Game implements IUseControls, IUseAssets {
 					new Tetris(this.context, this.canvasBoundingRect, this.resume);
 					break;
 				case 2: {
-					// this.playMemo();
-					this.resume();
+					this.playMemo();
 					break;
 				}
 			}
@@ -220,7 +230,8 @@ export class Game implements IUseControls, IUseAssets {
 		if (this.gameStateManager.isGamePaused) {
 			this.soundManager.get('holiday_game_theme').play();
 		}
-
+		
+		this.gameStateManager.isGameStarted = true;
 		this.gameStateManager.isGamePaused = false;
 		this.startListeningControls();
 		this.gameDriver.start();

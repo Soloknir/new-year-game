@@ -1,9 +1,9 @@
 import type Circle from "./Circle";
 import type Player from "./Characters/Player";
 import type Platform from "./Platform";
-import type Santa from "./Characters/Santa";
+import type Snowman from "./Characters/Snowman";
 
-type RectangularType = Player | Santa | Platform;
+type RectangularType = Player | Snowman | Platform;
 type RoundType = Circle;
 type GameObjectType = RectangularType | RoundType;
 

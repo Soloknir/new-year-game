@@ -290,6 +290,18 @@ export class Tetris implements IUseControls, IUseAssets {
 				}
 			}
 		}
+
+		this.drawScore();
+	}
+	
+	drawScore = () => {
+		const xShift = this.size.width / 2 - 160;
+		this.context.fillStyle = 'black';
+		this.context.font = '20px Arial';
+		this.context.textAlign = 'left';
+		this.context.textBaseline = 'bottom';
+		this.context.fillText(`Цель: ${this.target}`, xShift + 350, 30);
+		this.context.fillText(`Выполненно: ${this.score}`, xShift + 350, 60);
 	}
 
 	release = () => {

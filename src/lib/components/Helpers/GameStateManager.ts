@@ -1,6 +1,6 @@
 import type GameDriver from "../GameDriver";
 import type Player from "../Objects/Characters/Player";
-import type Santa from "../Objects/Characters/Santa";
+import type Snowman from "../Objects/Characters/Snowman";
 import type { GameObject } from "../Objects/GameObject";
 import type Overlay from "../Objects/Overlay";
 import type AssetManager from "./AssetManager";
@@ -18,12 +18,12 @@ export class StateManager {
 	isGamePaused = false;
 	currentLevel = 0;
 	
-	currentSantaSpawn = 1;
-	santaSpawnPositions = [
+	currentSnowmanSpawn = 1;
+	snowmanSpawnPositions = [
 		new Vector2D(1000, 300),
 		new Vector2D(2400, 350),
 		new Vector2D(5550, 800),
-		new Vector2D(6800, 200),
+		new Vector2D(-1000, 0),
 	];
 	
 	overlay?: Overlay;
@@ -44,9 +44,9 @@ export class StateManager {
 	get player(): Player | undefined { return this._player; }
 	set player(player: Player | undefined) { this._player = player; }
 
-	private _santa?: Santa;
-	get santa(): Santa | undefined { return this._santa }
-	set santa(santa: Santa | undefined) { this._santa = santa }
+	private _snowman?: Snowman;
+	get snowman(): Snowman | undefined { return this._snowman }
+	set snowman(snowman: Snowman | undefined) { this._snowman = snowman }
 
 	spawnObjects(objects: GameObject[]) {
 		objects.map(object => {
@@ -56,8 +56,9 @@ export class StateManager {
 	}
 
 	restartGame() {
+		this.isGameStarted = false;
 		this.playerRespawn = new Vector2D(250, 250);
 		this.currentLevel = 0;
-		this.currentSantaSpawn = 0;
+		this.currentSnowmanSpawn = 0;
 	}
 }
