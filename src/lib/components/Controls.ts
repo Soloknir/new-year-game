@@ -3,21 +3,18 @@ import type { IUseAssets } from "./Helpers/AssetManager";
 import ControlsManager, { ControlsEvent, type IUseControls } from "./Helpers/ControlsManager";
 import { Vector2D } from "./Helpers/Vector";
 import { Button } from "./Objects/Button";
-import WishesJson from "./wishes.json";
-import { getRandomInt } from "./Helpers/Utils";
 import type { StateManager } from "./Helpers/GameStateManager";
 
-export class EndGameScreen implements IUseControls, IUseAssets {
+export class ControlsScreen implements IUseControls, IUseAssets {
 	rAF: number | null = null;
 	context: CanvasRenderingContext2D;
 	canvasBoundingRect: DOMRect;
 	closeHandler: () => void;
 
-	wish = '';
 	opened = false;
-	gameStateManager: StateManager
-	assetsManager: AssetManager;
-	controlsManager: ControlsManager;
+	gameStateManager: StateManager;
+	assetsManager = AssetManager.Instance;
+	controlsManager = ControlsManager.Instance;
 	controlsEvents: { action: string; event: ControlsEvent; }[] = [];
 
 	buttons: Button[] = [];
@@ -29,38 +26,47 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 		this.context = context;
 		this.canvasBoundingRect = canvasBoundingRect;
 		this.closeHandler = closeHandler;
-
 		this.gameStateManager = gameStateManager;
-		this.controlsManager = ControlsManager.Instance;
-		this.assetsManager = AssetManager.Instance;
 		this.init();
 	}
 
 	init = async () => {
 		this.initControlsListeners();
-
 		this.createButtons();
-		this.wish = WishesJson.wishes[getRandomInt(0, WishesJson.wishes.length)];
-		this.rAF = window.requestAnimationFrame(this.loop);
-		this.startListeningControls();
-		this.opened = true;
+		this.isAssetsLoaded = true;
+		this.afterLoadCollback && this.afterLoadCollback();
 	}
 
 	createButtons = () => {
 		this.buttons = [
-			new Button(new Vector2D(950, 80), { width: 150, height: 50 }, {
-				base: this.assetsManager.get('button.restart'),
-				hover: this.assetsManager.get('button.restart-active')
+			new Button(new Vector2D(100, 100), { width: 150, height: 50 }, {
+				base: this.assetsManager.get('button.back'),
+				hover: this.assetsManager.get('button.back-active')
 			})
 		];
 	}
 
-	restart = () => {
+	getButtons = (): Button[] => {
+		return this.buttons;
+	}
+
+	open = () => {
+		if (!this.opened) {
+			if (this.isAssetsLoaded) {
+				this.opened = true;
+				this.rAF = window.requestAnimationFrame(this.loop);
+				this.startListeningControls();
+			} else {
+				this.afterLoadCollback = this.open;
+			}
+		}
+	}
+
+	release = () => {
 		if (this.opened) {
 			this.opened = false;
 			this.rAF && window.cancelAnimationFrame(this.rAF);
 			this.stopListeningControls();
-			this.opened = false;
 			this.closeHandler();
 		}
 	}
@@ -72,24 +78,32 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 
 	draw = () => {
 		const { width, height } = this.canvasBoundingRect;
-		this.context.drawImage(this.assetsManager.get('background.final'), 0, 0, width, height);
-		this.drawWish();
-		this.buttons.forEach(button => button.draw(this.context, this.canvasBoundingRect.height))
+		this.context.drawImage(this.assetsManager.get('background.controls'), 0, 0, width, height);
+		this.getButtons().forEach(button => button.draw(this.context, this.canvasBoundingRect.height));
+
+		this.drawKeys();
 	}
 
-	drawWish = () => {
+	drawKeys = () => {
+		this.context.drawImage(this.assetsManager.get('key.w'), 200, 150, 64, 64);
+		this.context.drawImage(this.assetsManager.get('key.a'), 274, 150, 64, 64);
+		this.context.drawImage(this.assetsManager.get('key.d'), 348, 150, 64, 64);
+		this.context.drawImage(this.assetsManager.get('key.space'), 200, 250, 128, 64);
+		this.context.drawImage(this.assetsManager.get('key.esc'), 200, 350, 64, 64);
+
+		this.context.textAlign = 'left';
+		this.context.textBaseline = 'top';
+		this.context.font = '40px Arial';
 		this.context.fillStyle = '#fff';
-		this.context.font = '25px Arial';
-		this.context.textAlign = 'center';
-		this.context.textBaseline = 'bottom';
-		this.wish.split('/n').forEach((line, index) => this.context.fillText(`${line}`, 400, 300 + index * 30));
+		this.context.fillText(' - Движение/Прыжок', 422, 160);
+		this.context.fillText(' - Действие', 422, 260);
+		this.context.fillText(' - Пауза', 422, 360);
 	}
 
 	handleMouseClick = () => {
 		if (this.opened) {
-			if (this.buttons[0].hover) {
-				console.log('Начать заново');
-				this.restart();
+			if (this.getButtons()[0].hover) {
+				this.release();
 			}
 		}
 	}
@@ -102,6 +116,7 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	}
 
 	initControlsListeners = () => {
+		this.controlsEvents = [{ action: 'keydown', event: new ControlsEvent(['Escape'], this.release) }]
 		window.addEventListener('mousemove', this.handleMouseMove);
 		window.addEventListener('mousedown', this.handleMouseClick);
 	};

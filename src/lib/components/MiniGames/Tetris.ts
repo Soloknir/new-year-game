@@ -245,7 +245,7 @@ export class Tetris implements IUseControls, IUseAssets {
 	loop = () => {
 		this.rAF = requestAnimationFrame(this.loop);
 		const xShift = this.size.width / 2 - 160;
-		this.context.drawImage(this.assetsManager.get('background.bg-minigame'), 0, 0, this.size.width, this.size.height);
+		this.context.drawImage(this.assetsManager.get('background.minigame'), 0, 0, this.size.width, this.size.height);
 		// draw walls
 		this.context.fillStyle = 'lightgrey';
 		this.context.fillRect(xShift, 0, 4, this.size.height);

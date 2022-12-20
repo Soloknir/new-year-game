@@ -1,10 +1,11 @@
 {
 	"assets": {
-		"background.bg-game": "background/bg-game.jpg",
-		"background.main-menu-bg": "background/main-menu-bg.jpg",
-		"background.bg-minigame": "background/bg-minigame.jpg",
-		"background.bg-final": "background/final-bg.jpg",
-	
+		"background.game": "background/bg-game.jpg",
+		"background.main-menu": "background/main-menu-bg.jpg",
+		"background.minigame": "background/bg-minigame.jpg",
+		"background.final": "background/final-bg.jpg",
+		"background.controls": "background/bg-controls.jpg",
+
 		"platform.base.head": "platforms/base/head.png",
 		"platform.base.body": "platforms/base/body.png",
 		"water.head": "water/head.png",
@@ -61,11 +62,14 @@
 		"button.control-active": "buttons/button-control-active.png",
 		"button.restart": "buttons/button-restart.png",
 		"button.restart-active": "buttons/button-restart-active.png",
+		"button.back": "buttons/button-back.png",
+		"button.back-active": "buttons/button-back-active.png",
 
 		"key.a": "keys/key-a.png",
 		"key.d": "keys/key-d.png",
 		"key.s": "keys/key-s.png",
 		"key.space": "keys/key-space.png",
+		"key.esc": "keys/key-esc.png",
 		"key.w": "keys/key-w.png"
 	}
 }

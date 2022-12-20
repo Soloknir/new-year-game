@@ -337,7 +337,7 @@ export class Bubble implements IUseControls, IUseAssets {
 	// game loop
 	loop = () => {
 		this.rAF = requestAnimationFrame(this.loop);
-		this.context.drawImage(this.assetsManager.get('background.bg-minigame'), 0, 0, this.canvasBoundingRect.width, this.canvasBoundingRect.height);
+		this.context.drawImage(this.assetsManager.get('background.minigame'), 0, 0, this.canvasBoundingRect.width, this.canvasBoundingRect.height);
 
 		this.update();
 		this.rAF && this.draw();

@@ -19,6 +19,7 @@ import Decoration from './Objects/Decoration';
 import Water from './Objects/Water';
 import PrizeBox from './Objects/PrizeBox';
 import Snowman from './Objects/Characters/Snowman';
+import { ControlsScreen } from './Controls';
 
 export interface IGameState {
 	isGameOver: boolean;
@@ -57,10 +58,10 @@ export class Game implements IUseControls, IUseAssets {
 		await this.loadAssets();
 		await this.loadSounds();
 
-		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.gameStateManager, this.resume);
+		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.gameStateManager, this.handleMenuAction);
 		this.pause();
 
-		this.gameDriver.backgroundImage = this.assetsManager.get('background.bg-game')
+		this.gameDriver.backgroundImage = this.assetsManager.get('background.game')
 		this.loadMap();
 		this.spawnPlayer();
 		this.spawnSnowman();
@@ -79,7 +80,20 @@ export class Game implements IUseControls, IUseAssets {
 		this.addGameOverEventListener();
 	};
 
-	handleEndGame = () => new EndGameScreen(this.context, this.canvasBoundingRect, this.gameStateManager, this.handleRestart);
+	handleMenuAction = (action: string) => {
+		switch (action) {
+			case 'controls':
+				(new ControlsScreen(this.context, this.canvasBoundingRect, this.gameStateManager, () => this.mainMenu?.open())).open();
+				break;
+			default:
+				this.resume();
+		}
+	};
+
+	handleEndGame = () => {
+		this.pause();
+		new EndGameScreen(this.context, this.canvasBoundingRect, this.gameStateManager, this.handleRestart);
+	};
 	handleRestart = () => {
 		this.pause();
 		this.gameStateManager.restartGame();
@@ -208,6 +222,7 @@ export class Game implements IUseControls, IUseAssets {
 					break;
 				case 2: {
 					this.playMemo();
+					// this.resume();
 					break;
 				}
 			}
