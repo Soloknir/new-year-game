@@ -1,8 +1,9 @@
-import { Vector2D } from "../../Vector";
+import { Vector2D } from "../../Helpers/Vector";
 import { G } from "../../Constants";
 import { GameObject, type IColliding, type IRectangular, type ISupportPhisics } from "../GameObject";
 
 export default class Player extends GameObject implements IRectangular, IColliding, ISupportPhisics {
+	depth = 1;
 	// Implements IRectangular interface
 	width: number;
 	height: number;
@@ -58,13 +59,13 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 		const frameHeight = 64;
 		context.drawImage(
 			this.sprite,
-			this.column * frameWidth + frameWidth / 4,
+			this.column * frameWidth,
 			this.row * frameHeight,
-			frameWidth - frameWidth / 4,
+			frameWidth,
 			frameHeight - 2,
 			viewCoords.x - vViewCoordinates.x,
 			viewCoords.y - this.height + vViewCoordinates.y,
-			this.width,
+			this.width + frameWidth / 4,
 			this.height
 		);
 	}
@@ -83,7 +84,7 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 			this.vVelocity.x -= this.horizontalMoveSpeed;
 		}
 		if (this.platform) {
-			this.vVelocity.x += this.platform.vVelocity.x ;
+			this.vVelocity.x += this.platform.vVelocity.x;
 		}
 
 		if (this.isJumping && this.platform) {
@@ -108,7 +109,7 @@ export default class Player extends GameObject implements IRectangular, ICollidi
 
 	getTop = () => this.height;
 	getBottom = () => 0;
-	getLeft = () => 0;
+	getLeft = () => 16;
 	getRight = () => this.width - 16;
 
 	startJumping = () => this.isJumping = true;

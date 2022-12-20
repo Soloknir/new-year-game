@@ -1,22 +1,14 @@
 <svelte:head>
-	<title>Home</title>
+	<title>Tensor New Year!</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
 <script>
-	import PazzleBobble from "$lib/components/PazzleBobble.svelte";
 	import Platformer from "$lib/components/Platformer.svelte";
-	import Puzzle from "$lib/components/Puzzle.svelte";
-	import Tetris from "$lib/components/Tetris.svelte";
-
 </script>
 
 <section>
 	<Platformer />
-	<!-- <Tetris /> -->
-	<!-- <PazzleBobble /> -->
-	<!-- <Puzzle /> -->
-
 </section>
 
 <style lang="sass">

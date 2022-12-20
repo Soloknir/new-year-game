@@ -2,7 +2,7 @@
 	"name": "new-year-game",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "set NODE_ENV=dev && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"test": "playwright test",
@@ -16,6 +16,7 @@
 		"@neoconfetti/svelte": "^1.0.0",
 		"@playwright/test": "1.25.0",
 		"@sveltejs/adapter-auto": "next",
+		"@sveltejs/adapter-static": "^1.0.0-next.48",
 		"@sveltejs/kit": "next",
 		"@types/cookie": "^0.5.1",
 		"@types/uuid": "^9.0.0",

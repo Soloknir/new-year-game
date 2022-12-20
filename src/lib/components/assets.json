@@ -1,0 +1,75 @@
+{
+	"assets": {
+		"background.game": "background/bg-game.jpg",
+		"background.main-menu": "background/main-menu-bg.jpg",
+		"background.minigame": "background/bg-minigame.jpg",
+		"background.final": "background/final-bg.jpg",
+		"background.controls": "background/bg-controls.jpg",
+
+		"platform.base.head": "platforms/base/head.png",
+		"platform.base.body": "platforms/base/body.png",
+		"water.head": "water/head.png",
+		"water.body": "water/body.png",
+	
+		"characters.player": "characters/player.png",
+		"characters.santa": "characters/santa.png",
+		"characters.snowman": "characters/snowman-evil.png",
+	
+		"dialog.overlay": "dialog-overlay.jpg",
+
+		"tetris.cube": "tetris/cube.png",
+		"tetris.cube-blue": "tetris/cube-blue.png",
+		"tetris.cube-brown": "tetris/cube-brown.png",
+		"tetris.cube-green": "tetris/cube-green.png",
+		"tetris.cube-pink": "tetris/cube-pink.png",
+		"tetris.cube-red": "tetris/cube-red.png",
+		"tetris.cube-violet": "tetris/cube-violet.png",
+									
+		"bubbles.1": "bubbles/bubble-1.png",	
+		"bubbles.2": "bubbles/bubble-2.png",
+		"bubbles.3": "bubbles/bubble-3.png",
+		"bubbles.4": "bubbles/bubble-4.png",
+
+		"decoration.bush": "decorations/bush.png",
+		"decoration.snow.1": "decorations/snow-1.png",
+		"decoration.snow.2": "decorations/snow-2.png",
+		"decoration.stone.1": "decorations/stone-1.png",
+		"decoration.stone.2": "decorations/stone-2.png",
+		"decoration.tree.1": "decorations/tree-1.png",
+		"decoration.tree.2": "decorations/tree-2.png",
+		"decoration.tree.3": "decorations/tree-3.png",
+		"decoration.needle": "decorations/needle.png",
+		"decoration.box": "decorations/box.png",
+
+		"gift.1": "gifts/gift1.png",
+		"gift.2": "gifts/gift2.png",
+		"gift.3": "gifts/gift3.png",
+		"gift.4": "gifts/gift4.png",
+		"gift.5": "gifts/gift5.png",
+		"gift.6": "gifts/gift6.png",
+		"gift.7": "gifts/gift7.png",
+		"gift.8": "gifts/gift8.png",
+		"gift.9": "gifts/gift9.png",
+		"gift.10": "gifts/gift10.png",
+		"gift.11": "gifts/gift11.png",
+		"gift.12": "gifts/gift12.png",
+
+		"button.start": "buttons/button-start.png",
+		"button.start-active": "buttons/button-start-active.png",
+		"button.continue": "buttons/button-continue.png",
+		"button.continue-active": "buttons/button-continue-active.png",
+		"button.control": "buttons/button-control.png",
+		"button.control-active": "buttons/button-control-active.png",
+		"button.restart": "buttons/button-restart.png",
+		"button.restart-active": "buttons/button-restart-active.png",
+		"button.back": "buttons/button-back.png",
+		"button.back-active": "buttons/button-back-active.png",
+
+		"key.a": "keys/key-a.png",
+		"key.d": "keys/key-d.png",
+		"key.s": "keys/key-s.png",
+		"key.space": "keys/key-space.png",
+		"key.esc": "keys/key-esc.png",
+		"key.w": "keys/key-w.png"
+	}
+}

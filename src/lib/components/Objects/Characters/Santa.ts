@@ -1,4 +1,4 @@
-import type { Vector2D } from "../../Vector";
+import type { Vector2D } from "../../Helpers/Vector";
 import { type IRectangular, GameObject, type IColliding } from "../GameObject";
 
 export default class Santa extends GameObject implements IRectangular, IColliding {

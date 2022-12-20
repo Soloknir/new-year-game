@@ -4,10 +4,11 @@ import type { IRectangleSize } from "./Objects/Interfaces";
 import MovingPlatform from "./Objects/MovingPlatform";
 import type Overlay from "./Objects/Overlay";
 import Platform from "./Objects/Platform";
-import { Vector2D } from "./Vector";
+import { Vector2D } from "./Helpers/Vector";
 
 export default class GameDriver {
 	context: CanvasRenderingContext2D;
+	rAF: number | null = null;
 	vViewCoordinates = new Vector2D();
 	viewPortWidth: number;
 	viewPortHeight: number;
@@ -26,10 +27,13 @@ export default class GameDriver {
 		this.viewPortHeight = viewPortSize.height;
 	}
 
-	start = () => window.requestAnimationFrame(this.gameLoop);
+	start = () => this.rAF = window.requestAnimationFrame(this.loop);
+	pause = () => this.rAF && window.cancelAnimationFrame(this.rAF);
 
-	gameLoop = (timeStamp: number) => {
+	loop = (timeStamp: number) => {
+		this.rAF = requestAnimationFrame(this.loop);
 		if (!this.overlay) {
+
 			this.secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
 			this.time += this.secondsPassed;
 			this.oldTimeStamp = timeStamp;
@@ -42,21 +46,11 @@ export default class GameDriver {
 				this.context.drawImage(this.backgroundImage, 0, 0, this.viewPortWidth, this.viewPortHeight);
 			}
 	
-			this.gameObjects.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
-			this.drawFps(Math.round(1 / this.secondsPassed));
+			this.gameObjects.sort((a, b) => a.depth > b.depth ? 1 : a.depth < b.depth ? -1: 0)
+				.forEach(obj => obj.draw(this.context, this.viewPortHeight, this.vViewCoordinates));
 		} else {
 			this.overlay.draw(this.context);
 		}
-	
-		window.requestAnimationFrame(this.gameLoop);
-	}
-
-	drawFps = (timeStamp: number) => {
-		this.context.fillStyle = '#fff';
-		this.context.font = '20px Arial';
-		this.context.textAlign = 'right';
-		this.context.textBaseline = 'bottom';
-		this.context.fillText(`fps: ${timeStamp}`, this.viewPortWidth - 20, 30);
 	}
 
 	detectPlatformCollision = (): void => {
@@ -99,7 +93,7 @@ export default class GameDriver {
 						&& (obj.vCoordinates.y + obj.getTop() < platform.vCoordinates.y + platform.getTop())
 						&& (obj.vCoordinates.y + obj.getBottom() >= platform.vCoordinates.y + platform.getBottom())
 					) {
-						obj.vCoordinates.x = platform.vCoordinates.x + platform.getRight();
+						obj.vCoordinates.x = platform.vCoordinates.x + platform.getRight() - obj.getLeft();
 						obj.vVelocity.x = 1;
 					}
 				}

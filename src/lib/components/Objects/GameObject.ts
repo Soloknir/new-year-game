@@ -1,6 +1,10 @@
 import { v4 as uuid } from 'uuid';
+import type GameDriver from '../GameDriver';
+import type AssetManager from '../Helpers/AssetManager';
+import type ControlsManager from '../Helpers/ControlsManager';
+import type { StateManager } from '../Helpers/GameStateManager';
 import { detectObjectIntersect } from '../Helpers/Intersections';
-import type { Vector2D } from '../Vector';
+import type { Vector2D } from '../Helpers/Vector';
 
 
 interface IGameEvent {
@@ -91,15 +95,21 @@ export interface IColliding {
 	getRight: () => number;
 }
 
+export interface IIntaractive extends IColliding {
+	active: boolean;
+	activeKeyTexture: HTMLImageElement;
+	callback: () => void;
+}
+
 export interface ISupportPhisics {
 	friction: number;
 	mass: number;
 	platform: GameObject | null;
 }
 
-
 export class GameObject {
 	id: string;
+	depth = 0;
 	vCoordinates: Vector2D;
 	vVelocity: Vector2D;
 	eventListeners: (GameCollisionEvent | GameEdgeEvent)[] = [];
@@ -110,6 +120,9 @@ export class GameObject {
 		this.vVelocity = vVelocity;
 	}
 
+	spawn = (gameDriver: GameDriver, _gameAssetManager: AssetManager, _gameControlsManager: ControlsManager, _gameStateManager: StateManager) => { 
+		gameDriver.spawnObject(this);
+	}
 	draw = (_c: CanvasRenderingContext2D, _vh: number, _vc: Vector2D): void => { return; };
 	update = (_t: number, _v: Vector2D): void => this.checkEventListeners();
 
