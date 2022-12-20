@@ -20,8 +20,8 @@ export class StateManager {
 	
 	currentSnowmanSpawn = 1;
 	snowmanSpawnPositions = [
-		new Vector2D(1000, 300),
-		new Vector2D(2400, 350),
+		new Vector2D(516, 200),
+		new Vector2D(2316, 350),
 		new Vector2D(5550, 800),
 		new Vector2D(-1000, 0)
 	];
@@ -65,6 +65,6 @@ export class StateManager {
 			this.player.vVelocity = new Vector2D();
 		}
 		if (this.snowman)
-			this.snowman.vCoordinates = new Vector2D(1000, 300);
+			this.snowman.vCoordinates = new Vector2D(500, 200);
 	}
 }
