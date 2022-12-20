@@ -222,7 +222,6 @@ export class Game implements IUseControls, IUseAssets {
 					break;
 				case 2: {
 					this.playMemo();
-					// this.resume();
 					break;
 				}
 			}
