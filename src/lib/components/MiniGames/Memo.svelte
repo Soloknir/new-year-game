@@ -73,21 +73,23 @@
 	];
 
 	function handleFlipCard(index: number) {
-		if (lockBoard) return;
-		if (firstCardIndex === index) return;
-		
-		cards[index].flip = true;
-
-		if (!hasFlippedCard) {
-			hasFlippedCard = true;
-			firstCardIndex = index;
-			return;
+		if (!cards[index].flip) {
+			if (lockBoard) return;
+			if (firstCardIndex === index) return;
+			
+			cards[index].flip = true;
+	
+			if (!hasFlippedCard) {
+				hasFlippedCard = true;
+				firstCardIndex = index;
+				return;
+			}
+	
+			secondCardIndex = index;
+			lockBoard = true;
+	
+			checkForMatch();
 		}
-
-		secondCardIndex = index;
-		lockBoard = true;
-
-		checkForMatch();
 	}
 
 	function checkForMatch() {
