@@ -100,7 +100,7 @@
 	function disableCards() {
 		resetBoard();
 		if (!(cards.some(card => !card.flip))) {
-			dispatch('done');
+			setTimeout(() => dispatch('done'), 2000);
 		}
 	}
 

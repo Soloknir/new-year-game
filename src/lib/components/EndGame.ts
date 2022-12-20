@@ -73,8 +73,18 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	draw = () => {
 		const { width, height } = this.canvasBoundingRect;
 		this.context.drawImage(this.assetsManager.get('background.final'), 0, 0, width, height);
+		
+		this.drawHNewYear();
 		this.drawWish();
 		this.buttons.forEach(button => button.draw(this.context, this.canvasBoundingRect.height))
+	}
+
+	drawHNewYear = () => {
+		this.context.fillStyle = '#fff';
+		this.context.font = '64px Arial';
+		this.context.textAlign = 'center';
+		this.context.textBaseline = 'bottom';
+		this.context.fillText('С новым годом!', this.canvasBoundingRect.width / 2, 100);
 	}
 
 	drawWish = () => {
@@ -88,7 +98,6 @@ export class EndGameScreen implements IUseControls, IUseAssets {
 	handleMouseClick = () => {
 		if (this.opened) {
 			if (this.buttons[0].hover) {
-				console.log('Начать заново');
 				this.restart();
 			}
 		}

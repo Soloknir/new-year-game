@@ -23,7 +23,7 @@ export class StateManager {
 		new Vector2D(1000, 300),
 		new Vector2D(2400, 350),
 		new Vector2D(5550, 800),
-		new Vector2D(-1000, 0),
+		new Vector2D(-1000, 0)
 	];
 	
 	overlay?: Overlay;
@@ -59,6 +59,12 @@ export class StateManager {
 		this.isGameStarted = false;
 		this.playerRespawn = new Vector2D(250, 250);
 		this.currentLevel = 0;
-		this.currentSnowmanSpawn = 0;
+		this.currentSnowmanSpawn = 1;
+		if (this.player) {
+			this.player.vCoordinates = this.playerRespawn.getCopy();
+			this.player.vVelocity = new Vector2D();
+		}
+		if (this.snowman)
+			this.snowman.vCoordinates = new Vector2D(1000, 300);
 	}
 }

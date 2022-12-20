@@ -102,10 +102,6 @@ export class Game implements IUseControls, IUseAssets {
 			this.gameStateManager.player.vCoordinates = this.gameStateManager.playerRespawn.getCopy();
 			this.gameStateManager.player.vVelocity = new Vector2D();
 		}
-		if (this.gameStateManager.snowman) {
-			this.gameStateManager.snowman.vCoordinates = this.gameStateManager
-				.snowmanSpawnPositions[this.gameStateManager.currentSnowmanSpawn].getCopy();
-		}
 	}
 
 	loadMap = () => {
@@ -205,6 +201,7 @@ export class Game implements IUseControls, IUseAssets {
 			this.gameDriver.overlay = null;
 			this.gameStateManager.playerRespawn = this.gameStateManager.snowman.vCoordinates.getCopy();
 			if (this.gameStateManager.currentSnowmanSpawn <= 3) {
+				console.log('this.gameStateManager.currentSnowmanSpawn', this.gameStateManager.currentSnowmanSpawn);
 				this.gameStateManager.snowman.vCoordinates = this.gameStateManager
 					.snowmanSpawnPositions[this.gameStateManager.currentSnowmanSpawn++].getCopy();
 					if (this.gameStateManager.currentSnowmanSpawn <= 3)
@@ -225,6 +222,8 @@ export class Game implements IUseControls, IUseAssets {
 					break;
 				}
 			}
+
+			console.log(this.gameStateManager.snowman.vCoordinates);
 		}
 	}
 

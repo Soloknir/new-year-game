@@ -18,6 +18,7 @@ export default class PrizeBox extends GameObject implements IRectangular, IIntar
 	activeKeyTexture: HTMLImageElement;
 	activationCallback: () => void;
 	playerCollisionEvent?: GameCollisionEvent;
+	openPrizeEvent?: ControlsEvent;
 
 	constructor(vCoordinates: Vector2D, size: IRectangleSize, texture: HTMLImageElement, activeKeyTexture: HTMLImageElement, activationCallback: () => void) {
 		super(vCoordinates, new Vector2D());
@@ -33,7 +34,8 @@ export default class PrizeBox extends GameObject implements IRectangular, IIntar
 		gameDriver.spawnObject(this);
 		if (gameStateManager.player) {
 			this.playerCollisionEvent = new GameCollisionEvent(gameStateManager.player, false, this.callback);
-			controlsManager.addEventListener('keyup', new ControlsEvent(['Space'], this.callback))
+			this.openPrizeEvent = new ControlsEvent(['Space'], this.callback);
+			controlsManager.addEventListener('keyup', this.openPrizeEvent);
 			this.addEventListener(this.playerCollisionEvent);
 		}
 	}
@@ -67,6 +69,7 @@ export default class PrizeBox extends GameObject implements IRectangular, IIntar
 
 	callback = () => {
 		if (this.active) {
+			this.active = false;
 			this.activationCallback();
 		}
 	}
