@@ -33,6 +33,7 @@ export interface IGameState {
 export class Game implements IUseControls, IUseAssets {
 	context: CanvasRenderingContext2D;
 	canvasBoundingRect: DOMRect;
+	endLoadingCallback: () => void;
 
 	gameDriver: GameDriver;
 	mainMenu?: MainMenu;
@@ -44,10 +45,10 @@ export class Game implements IUseControls, IUseAssets {
 
 	gameStateManager: StateManager;
 
-	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect) {
+	constructor(context: CanvasRenderingContext2D, canvasBoundingRect: DOMRect, endLoadingCallback: () => void) {
 		this.context = context;
 		this.canvasBoundingRect = canvasBoundingRect;
-
+		this.endLoadingCallback = endLoadingCallback;
 		this.gameDriver = new GameDriver(context, canvasBoundingRect);
 		this.gameStateManager = StateManager.getInstance(this.gameDriver, this.assetsManager, this.controlsManager);
 
@@ -57,10 +58,10 @@ export class Game implements IUseControls, IUseAssets {
 	gameStart = async () => {
 		await this.loadAssets();
 		await this.loadSounds();
-
+		this.endLoadingCallback();
 		this.mainMenu = new MainMenu(this.context, this.canvasBoundingRect, this.gameStateManager, this.handleMenuAction);
 		this.pause();
-
+		
 		this.gameDriver.backgroundImage = this.assetsManager.get('background.game')
 		this.loadMap();
 		this.spawnPlayer();
@@ -72,14 +73,14 @@ export class Game implements IUseControls, IUseAssets {
 			new PrizeBox(new Vector2D(7200, 200), { width: 50, height: 50 }, this.assetsManager.get('gift.4'), this.assetsManager.get('key.space'), this.handleEndGame),
 			new PrizeBox(new Vector2D(7300, 200), { width: 50, height: 50 }, this.assetsManager.get('gift.5'), this.assetsManager.get('key.space'), this.handleEndGame),
 		]);
-
+		
 		this.initControlsListeners();
 		this.startListeningControls();
-
+		
 		this.addSnowmanMeetingEventListener();
 		this.addGameOverEventListener();
 	};
-
+	
 	handleMenuAction = (action: string) => {
 		switch (action) {
 			case 'controls':
@@ -222,8 +223,6 @@ export class Game implements IUseControls, IUseAssets {
 					break;
 				}
 			}
-
-			console.log(this.gameStateManager.snowman.vCoordinates);
 		}
 	}
 
