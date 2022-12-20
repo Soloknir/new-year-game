@@ -132,8 +132,8 @@
 	{#each cards as { flip, name }, index}
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<div class="memory-card" class:flip="{flip}" data-name="{name}" on:click={() => handleFlipCard(index)}>
-			<img class="front-face" src="{import.meta.env.DEV ? '' : '/new-year-game'}/assets/memo/{name}.png" alt="saby">
-			<img class="back-face" src="{import.meta.env.DEV ? '' : '/new-year-game'}/assets/memo/saby-shirt.png" alt="saby">
+			<img class="front-face" src="/assets/memo/{name}.png" alt="saby">
+			<img class="back-face" src="/assets/memo/saby-shirt.png" alt="saby">
 		</div>
 	{/each}
 </div>

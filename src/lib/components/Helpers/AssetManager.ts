@@ -26,7 +26,7 @@ export default class AssetManager {
 
 	private loadAsset = (path: string) => new Promise<HTMLImageElement>((resolve) => {
 		const image = new Image();
-		image.src = `${import.meta.env.DEV ? '' : '/new-year-game'}/assets/${path}`;
+		image.src = `/assets/${path}`;
 		image.onload = () => resolve(image);
 	});
 }
