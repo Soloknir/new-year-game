@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Home</title>
+	<title>Tensor New Year!</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
